@@ -1,0 +1,108 @@
+/* Estilo general del body */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f7fc;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-solicitudes-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Títulos */
+h2 {
+  color: #333;
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Loading y Error */
+p {
+  font-size: 16px;
+  text-align: center;
+}
+
+p[style*="color: red"] {
+  color: red;
+  font-weight: bold;
+}
+
+/* Tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+}
+
+td {
+  background-color: #fff;
+  font-size: 14px;
+  color: #555;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+td[colspan="10"] {
+  text-align: center;
+  font-weight: bold;
+  color: #777;
+}
+
+/* Acciones (íconos) */
+.actions-cell {
+  text-align: center;
+}
+
+.actions-icon {
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.actions-icon.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.actions-icon:hover {
+  opacity: 0.8;
+}
+
+/* Resposividad */
+@media (max-width: 768px) {
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+}

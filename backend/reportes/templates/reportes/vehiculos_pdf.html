@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Helvetica, sans-serif; font-size: 11px; }
+
+    .encabezado { text-align: center; margin-bottom: 20px; }
+    .encabezado h1 { font-size: 16px; color: #256d39; margin: 0; }
+    .encabezado h3 { font-size: 12px; margin: 0; color: #333; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td {
+      border: 1px solid #000;
+      padding: 5px;
+      font-size: 10px;
+    }
+
+    th {
+      background-color: #256d39;
+      color: white;
+      text-align: center;
+    }
+
+    td:nth-child(1) { width: 5%; text-align: center; }
+    td:nth-child(2) { width: 20%; }
+    td:nth-child(3) { width: 10%; text-align: center; }
+    td:nth-child(4) { width: 10%; text-align: center; }
+    td:nth-child(5) { width: 10%; text-align: center; }
+    td:nth-child(6) { width: 10%; text-align: center; }
+    td:nth-child(7) { width: 15%; text-align: center; }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="encabezado">
+    <h1>VOLECE C.A.</h1>
+    <h3>Reporte de Vehículos</h3>
+  </div>
+
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Transportista</th>
+      <th>Placa</th>
+      <th>Marca</th>
+      <th>Modelo</th>
+      <th>Tonelaje</th>
+      <th>Estado</th>
+    </tr>
+    {% for v in vehiculos %}
+    <tr>
+      <td>{{ v.id }}</td>
+      <td>{{ v.transportista.first_name }} {{ v.transportista.last_name }}</td>
+      <td>{{ v.placa }}</td>
+      <td>{{ v.marca }}</td>
+      <td>{{ v.modelo }}</td>
+      <td>{{ v.tonelaje }} t</td>
+      <td>{{ v.get_estado_display }}</td>
+    </tr>
+    {% endfor %}
+  </table>

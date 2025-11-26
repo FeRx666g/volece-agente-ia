@@ -1,0 +1,134 @@
+/* Reset y estilo general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f7f5;
+  color: #2d3436;
+}
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* Sidebar moderno */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(to bottom right, #0f172a, #1e293b);
+  color: white;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar h2 {
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: bold;
+}
+
+.sidebar button {
+  background-color: #256d39;
+  border: none;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.sidebar button:hover {
+  background-color: #1f5130;
+}
+
+.sidebar .active-sidebar {
+  background-color: #14532d;
+}
+
+/* Botón cerrar sesión */
+.logout-button {
+  background-color: #dc2626;
+  margin-top: 2rem;
+}
+
+.logout-button:hover {
+  background-color: #b91c1c;
+}
+
+/* Contenido principal */
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.dashboard-content-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card-section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Estado de vehículo */
+.estado-vehiculo {
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+.estado-vehiculo.ACTIVO {
+  color: #15803d;
+  background-color: #dcfce7;
+}
+
+.estado-vehiculo.INACTIVO {
+  color: #475569;
+  background-color: #e2e8f0;
+}
+
+.estado-vehiculo.MANTENIMIENTO {
+  color: #c2410c;
+  background-color: #ffedd5;
+}
+
+/* Botones de cambio de estado */
+.estado-buttons button {
+  margin: 5px 8px 5px 0;
+  padding: 10px 14px;
+  background-color: #256d39;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.estado-buttons button:hover {
+  background-color: #1a4427;
+}
+
+/* Alertas */
+.alerta-item {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 5px solid #f59e0b;
+  border-radius: 6px;
+}

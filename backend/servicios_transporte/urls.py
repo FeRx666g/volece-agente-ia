@@ -1,0 +1,24 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from .views import (
+    CrearSolicitudServicioView,
+    ListaSolicitudesClienteView,
+    ListaSolicitudesAdminView,
+    SolicitudDetailView,
+    AsignarTurnoIAView, 
+    CrearTurnoDesdeSolicitudView, 
+)
+
+urlpatterns = [
+    path('solicitudes/crear/', CrearSolicitudServicioView.as_view(), name='crear-solicitud'),
+    path('solicitudes/mis-solicitudes/', ListaSolicitudesClienteView.as_view(), name='mis-solicitudes'),
+    path('solicitudes/', ListaSolicitudesAdminView.as_view(), name='solicitudes-admin'),
+    path('solicitudes/<int:pk>/', SolicitudDetailView.as_view(), name='solicitud-detail'),
+    path('solicitudes/todas/', ListaSolicitudesAdminView.as_view(), name='solicitudes-admin'),
+
+    # Nuevo endpoint para la IA de n8n:
+    path('asignar-turno/', AsignarTurnoIAView.as_view(), name='asignar-turno-ia'),
+    path('solicitudes/crear-turno/', CrearTurnoDesdeSolicitudView.as_view(), name='crear-turno-desde-solicitud'),
+]
+

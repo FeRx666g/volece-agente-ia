@@ -1,0 +1,490 @@
+/* home.css */
+.home-container {
+  font-family: 'Arial', sans-serif;
+  padding: 0 20px;
+}
+
+/* Banner */
+.banner {
+  background-image: url('../img/banner.jpg');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-align: center;
+  padding: 100px 20px;
+  position: relative;
+  background-attachment: fixed;
+  transition: background 0.3s ease-in-out;
+}
+
+.hybrid-banner {
+  position: relative;
+  background: url('../img/banner.jpg') no-repeat center center;
+  background-size: cover;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.banner-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 3rem;
+  border-radius: 12px;
+  color: #fff;
+  max-width: 700px;
+  animation: zoomIn 1.5s ease-in-out;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.banner-text h1, .banner-text p {
+  animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.banner-text h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.banner-text p {
+  font-size: 1.5rem;
+}
+
+/* Secciones generales */
+.about-us, .services, .advantages, .cta {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+/* Cards de servicios */
+.service-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  gap: 20px;
+}
+
+.card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  width: 280px;
+  margin: 15px;
+  padding: 20px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0px 12px 20px rgba(0,0,0,0.2);
+}
+
+.service-icon {
+  font-size: 4rem;
+  color: #4CAF50;
+  margin-bottom: 15px;
+}
+
+/* Ventajas */
+.advantages ul {
+  list-style-type: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.advantages li {
+  background: #f1f1f1;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  animation: fadeInUp 1s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.advantages li:before {
+  content: "✓";
+  color: #4CAF50;
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+/* Estadísticas */
+.stats {
+  display: flex;
+  justify-content: space-around;
+  background: #4CAF50;
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+.stat h3 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.stat p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* CTA final */
+.cta-final {
+  background-color: #4CAF50;
+  color: white;
+  padding: 60px 20px;
+  text-align: center;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+
+.cta-button {
+  margin-top: 20px;
+  background: white;
+  color: #4CAF50;
+  padding: 12px 24px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s, color 0.3s, transform 0.3s;
+}
+
+.cta-button:hover {
+  background: #45a049;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .banner-text h1 {
+    font-size: 2rem;
+  }
+
+  .banner-text p {
+    font-size: 1rem;
+  }
+
+  .cta-button {
+    padding: 10px 20px;
+  }
+
+  .card {
+    width: 90%;
+    margin: 10px 0;
+  }
+
+  .advantages ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* MODAL de contacto */
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999; 
+}
+
+
+.modal-content {
+
+  background-color: #fff !important;
+  color: #000 !important;
+  z-index: 1000000 !important;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #4CAF50;
+}
+
+.modal-content ul {
+  list-style: none;
+  padding: 0;
+}
+
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: #45a049;
+}
+
+/* Redes Sociales en el modal */
+.social-icons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.social-icons a {
+  color: #4CAF50;
+  font-size: 1.5rem;
+  transition: transform 0.3s, color 0.3s;
+}
+
+.social-icons a:hover {
+  color: #388E3C;
+  transform: scale(1.2);
+}
+
+/* Animación del modal */
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación general para secciones */
+section {
+  animation: fadeInSection 1s ease both;
+}
+
+@keyframes fadeInSection {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+/*Video*/
+.video-section {
+  padding: 60px 20px;
+  text-align: center;
+  background: #f4f4f4;
+}
+
+.video-section h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.video-container {
+  aspect-ratio: 16 / 9;        
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background: black;          /* Para evitar bordes blancos si hay márgenes */
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;          
+  display: block;
+}
+
+/*MAPA*/
+.map-section {
+  padding: 60px 20px;
+  background-color: #eef2f3;
+  text-align: center;
+}
+
+.map-section h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.map-container {
+  max-width: 960px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Botón flotante de WhatsApp */
+.whatsapp-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 1.8rem;
+  color: white;
+  background: #25D366;
+  padding: 12px 14px;
+  border-radius: 50%;
+  z-index: 10000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.whatsapp-float:hover {
+  background: #1ebe5d;
+  transform: scale(1.1);
+}
+
+/* Botón de volver arriba */
+.scroll-to-top {
+  position: fixed;
+  bottom: 90px; /* Más arriba que el WhatsApp */
+  right: 20px;
+  z-index: 9999;
+  background: #4CAF50;
+  color: white;
+  font-size: 1.5rem;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: background 0.3s, transform 0.2s ease-in-out;
+}
+
+.scroll-to-top:hover {
+  background: #388E3C;
+  transform: scale(1.1);
+}
+
+
+
+/*estilos modales nav nosotros*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.modal-content h2 {
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.modal-content p {
+  font-size: 1.1rem;
+  color: #34495e;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.modal-content button {
+  background-color: #388E3C;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.modal-content button:hover {
+  background-color: #26843a;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}

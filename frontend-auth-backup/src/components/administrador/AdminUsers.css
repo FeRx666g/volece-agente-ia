@@ -1,0 +1,117 @@
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .modal-content input, .modal-content select {
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .btn-modal {
+    background-color: #279200;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .btn-modal-cancelar {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+.usuarios-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.tabla-usuarios {
+  width: 80%;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+  text-align: center;
+}
+
+.tabla-usuarios th {
+  background-color: #279200;
+  color: white;
+}
+
+.tabla-usuarios tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.tabla-usuarios tr:hover {
+  background-color: #d4f1d4;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  margin: 0 5px;
+}
+
+.btn-icon.editar {
+  color: #007bff;
+}
+
+.btn-icon.eliminar {
+  color: #dc3545;
+}
+
+.btn-crear-usuario {
+  background-color: #279200;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-crear-usuario:hover {
+  background-color: #1e7300;
+}

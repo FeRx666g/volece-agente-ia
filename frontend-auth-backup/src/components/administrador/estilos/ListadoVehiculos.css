@@ -1,0 +1,57 @@
+.contenedor {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.titulo {
+  font-size: 28px;
+  color: #2E7D32; /* Verde institucional */
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.filtros {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla thead {
+  background: #2E7D32;
+  color: #fff;
+}
+
+.tabla th, .tabla td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.paginacion {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.paginacion button {
+  margin: 0 10px;
+  padding: 8px 16px;
+  background-color: #2E7D32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.paginacion button:disabled {
+  background-color: #999;
+  cursor: default;
+}

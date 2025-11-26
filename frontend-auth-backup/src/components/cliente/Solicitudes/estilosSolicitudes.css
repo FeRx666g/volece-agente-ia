@@ -1,0 +1,122 @@
+/* Fondo semioscuro que ocupa toda la pantalla */
+.form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(16, 40, 20, 0.8); /* tono más oscuro, menos saturado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* Formulario centrado con fondo más suave */
+.form-solicitar-servicio {
+  background: #1f3524; /* verde sobrio */
+  padding: 25px 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: white;
+  font-family: "Poppins", sans-serif;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Botón de cierre (X) */
+.btn-close-x {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 24px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-close-x:hover {
+  color: var(--danger);
+  transform: scale(1.2);
+}
+
+/* Título */
+.form-solicitar-servicio h2 {
+  margin-bottom: 15px;
+  color: #a3d9a5; /* verde pastel */
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+}
+
+/* Labels */
+.form-solicitar-servicio label {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+/* Inputs */
+.form-solicitar-servicio input[type="text"],
+.form-solicitar-servicio input[type="date"] {
+  padding: 8px 10px;
+  border: 1.5px solid #88c99c; /* verde claro */
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+  color: white;
+  background-color: #2a4432; /* verde más oscuro */
+  height: 32px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.form-solicitar-servicio input[type="text"]:focus,
+.form-solicitar-servicio input[type="date"]:focus {
+  border-color: #a3d9a5;
+  box-shadow: 0 0 6px #a3d9a5;
+}
+
+/* Mensajes */
+.form-error {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+}
+
+.form-success {
+  color: #a5f5c4; /* verde menta */
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Botón enviar */
+.btn-submit {
+  margin-top: 10px;
+  padding: 10px 0;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: linear-gradient(135deg, #3d8f58, #6cbf7e); /* verde medio */
+  color: white;
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.35);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, #2e7d44, #56a86a); /* más oscuro al hover */
+  box-shadow: 0 7px 25px rgba(76, 175, 80, 0.5);
+}

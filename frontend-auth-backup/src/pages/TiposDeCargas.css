@@ -1,0 +1,75 @@
+.cargas-container {
+  padding: 50px 20px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.cargas-container h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  border-bottom: 3px solid #3498db;
+  display: inline-block;
+  padding-bottom: 8px;
+}
+
+.cargas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+}
+
+.carga-card {
+  background-color: #fff;
+  width: 250px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.carga-card:hover {
+  transform: translateY(-5px);
+}
+
+.carga-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.carga-card h3 {
+  margin: 15px 0 10px;
+  font-size: 1.3rem;
+  color: #2c3e50;
+}
+
+.carga-card p {
+  padding: 0 15px 20px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+
+/*BÓTON ATRÁS*/
+.back-button {
+  background-color: #5ae46a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-align: left;
+  display: inline-block;
+  margin-left: 0; /* Asegura que empiece desde el borde izquierdo */
+}
+
+.back-button:hover {
+  background-color: #34a34f;
+}

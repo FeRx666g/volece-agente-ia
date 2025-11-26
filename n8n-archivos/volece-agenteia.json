@@ -1,0 +1,293 @@
+{
+  "name": "volece-agenteia",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/asignar-turno-ai",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "550efc95-58f9-42f0-98b6-6ec275e605ea",
+      "name": "Webhook",
+      "webhookId": "0e3518f2-f483-46a8-a810-0eee1bc77d21"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nlet content = null;\n\nif (items[0]?.json?.message?.content) {\n  content = items[0].json.message.content;\n} else if (items[0]?.json?.content) {\n  content = items[0].json.content;\n}\n\nif (typeof content !== 'string') {\n  throw new Error('No se encontró el contenido de OpenAI como string');\n}\n\ncontent = content.trim();\n\nif (content.startsWith('```')) {\n  content = content.replace(/^```[a-zA-Z]*\\s*/,'');\n  content = content.replace(/```$/,'');            \n  content = content.trim();\n}\n\ncontent = content.replace(/,\\s*([\\]}])/g, '$1');\n\nlet data;\ntry {\n  data = JSON.parse(content);\n} catch (e) {\n  throw new Error('No se pudo parsear la respuesta de OpenAI: ' + e.message + '\\nContenido:\\n' + content);\n}\n\nlet mejor = data.mejor_transportista || null;\nlet comentarioGlobal = data.comentario_ia || null;\nlet listaCompleta = Array.isArray(data.lista_completa)\n  ? data.lista_completa\n  : [];\n\nlistaCompleta = listaCompleta\n  .map((t) => ({\n    transportista_id: Number(t.transportista_id),\n    transportista_nombre: t.transportista_nombre,\n    vehiculo_tipo: t.vehiculo_tipo,\n    vehiculo_tonelaje: Number(t.vehiculo_tonelaje),\n    probabilidad: Number(t.probabilidad),\n    comentario_ia: t.comentario_ia,\n  }))\n  .sort((a, b) => (b.probabilidad || 0) - (a.probabilidad || 0));\n\nif (!mejor && listaCompleta.length > 0) {\n  mejor = {\n    transportista_id: listaCompleta[0].transportista_id,\n    transportista_nombre: listaCompleta[0].transportista_nombre,\n    probabilidad: listaCompleta[0].probabilidad,\n  };\n}\n\nreturn [\n  {\n    json: {\n      mejor_transportista: mejor,\n      comentario_ia: comentarioGlobal,\n      lista_completa: listaCompleta,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "5f348667-88b5-4e06-8c02-bf0bc1c04b12",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  v.id                    AS vehiculo_id,\n  v.tipo                  AS vehiculo_tipo,\n  v.tonelaje              AS vehiculo_tonelaje,\n  v.estado                AS vehiculo_estado,\n  v.placa                 AS vehiculo_placa,\n  v.transportista_id      AS transportista_id,\n  v.observaciones         AS observaciones,\n  u.first_name            AS transportista_nombre,\n  u.last_name             AS transportista_apellido,\n  u.is_active             AS transportista_activo,\n  u.rol                   AS transportista_rol\nFROM gestion_vehiculos_vehiculo v\nJOIN gestion_usuarios_usuario u\n  ON v.transportista_id = u.id\nWHERE v.estado = 'ACTIVO'        \n  AND u.rol = 'TRANSP';  \n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1f4ff312-4a60-419f-aec2-8c1c1dce2001",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "N9NzMBFMvp23rYVr",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst webhookItems = $items(\"Webhook\");\nconst solicitudBody = webhookItems[0]?.json?.body ?? {};\n\nconst transportistasSQL = $items(\"Execute a SQL query\");\n\nconst transportistas = transportistasSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  transportista_nombre: i.json.transportista_nombre,\n  transportista_apellido: i.json.transportista_apellido,\n  vehiculo_id: parseInt(i.json.vehiculo_id, 10),\n  vehiculo_tipo: i.json.vehiculo_tipo,\n  vehiculo_observacion: i.json.observaciones,\n  vehiculo_tonelaje: parseFloat(i.json.vehiculo_tonelaje),\n  vehiculo_placa: i.json.vehiculo_placa,\n}));\n\nconst disponibilidadSQL = $items(\"Execute a SQL query1\");\n\nconst disponibilidad = disponibilidadSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  fechas_ocupado: i.json.fechas_ocupado || [],\n  viajes_semana: parseInt(i.json.viajes_semana, 10) || 0,\n}));\n\nconst candidatos = transportistas.map(t => {\n  const dispo = disponibilidad.find(d => d.transportista_id === t.transportista_id);\n\n  return {\n    ...t,\n    fechas_ocupado: dispo?.fechas_ocupado ?? [],\n    viajes_semana: dispo?.viajes_semana ?? 0,\n  };\n});\n\nreturn [\n  {\n    json: {\n      solicitud: {\n        id_solicitud: solicitudBody.id_solicitud ?? null,\n        tipo_carga: solicitudBody.tipo_carga ?? null,\n        origen: solicitudBody.origen ?? null,\n        destino: solicitudBody.destino ?? null,\n        fecha_solicitud: solicitudBody.fecha_solicitud ?? null,\n      },\n      candidatos\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "3abb4673-2c89-42c0-86cd-6e251d53d8a7",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "content": "**Nodo que recibe los datos de la solicitud del cliente** ",
+        "height": 240,
+        "width": 160,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "32310b8d-1166-4c1e-af3c-1e0f58d77217",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "**Nodo que consulta los transportistas activos y sus datos.** ",
+        "height": 240,
+        "width": 192,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "5e94c003-c1ef-479b-8014-8d8101a9ad9a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH semana AS (\n    SELECT\n        date_trunc('week', CURRENT_DATE)::date AS lunes,         -- lunes de la semana actual\n        (date_trunc('week', CURRENT_DATE)::date + interval '6 days')::date AS domingo  -- domingo\n),\ntransportistas AS (\n    SELECT DISTINCT transportista_id\n    FROM gestion_transporte_datasetturnosia\n    WHERE transportista_id IS NOT NULL\n)\nSELECT\n    t.transportista_id,\n\n    -- 1) TODAS las fechas donde está ocupado (asignado)\n    ARRAY(\n        SELECT d.fecha_turno\n        FROM gestion_transporte_datasetturnosia d\n        WHERE d.transportista_id = t.transportista_id\n          AND d.estado_solicitud = 'asignado'\n        ORDER BY d.fecha_turno\n    ) AS fechas_ocupado,\n\n    -- 2) NÚMERO DE VIAJES asignados en TODA la semana (lunes a domingo)\n    (\n        SELECT COUNT(*)\n        FROM gestion_transporte_datasetturnosia d2, semana s\n        WHERE d2.transportista_id = t.transportista_id\n          AND d2.estado_solicitud = 'asignado'\n          AND d2.fecha_turno BETWEEN s.lunes AND s.domingo\n    ) AS viajes_semana\n\nFROM transportistas t\nORDER BY t.transportista_id;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        0
+      ],
+      "id": "93ad0d19-6b84-4c01-8778-e2b71d012906",
+      "name": "Execute a SQL query1",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "N9NzMBFMvp23rYVr",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "**Nodo que consulta las fechas no disponibles de los transportistas y la cantidad de asignaciones en la semana.** ",
+        "height": 240,
+        "width": 304,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "51783dd9-0b6e-4b1b-8808-31a2716098a7",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "**Nodo que une la solicitud del cliente y las consultas SQL para el modelo de IA.** ",
+        "height": 240,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "ee9a6fe6-c524-4696-913c-17091784d2db",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "**Nodo que ejecuta el modelo de IA según la información proporcionada.** ",
+        "height": 240,
+        "width": 256,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        944,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "49f8abc8-961e-4248-b80a-e634c78e8436",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Eres un asistente especializado en logística y asignación de transporte de carga.\n\nRecibirás un JSON con dos secciones:\n\n- \"solicitud\": contiene id_solicitud, origen, destino, tipo_carga y fecha_solicitud.\n- \"candidatos\": lista REAL de transportistas con:\n  - transportista_id\n  - transportista_nombre\n  - vehiculo_tipo\n  - vehiculo_tonelaje\n  - vehiculo_placa\n  - observaciones\n  - fechas_ocupado (fechas EXACTAS donde ya tiene viajes asignados)\n  - viajes_semana (cantidad de asignaciones en la semana actual)\n\nREGLAS ESTRICTAS (OBLIGATORIAS):\n\n1. NO debes inventar transportistas ni ningún dato.\n2. NO debes modificar ningún valor del JSON.\n3. Debes evaluar a cada candidato combinando tres criterios obligatorios:\n\n   A) Compatibilidad logística (50%):\n      - tipo de vehículo, tonelaje y adecuación a la carga.\n\n   B) Disponibilidad en la fecha_solicitud (30%):\n      - DEBES considerar ÚNICAMENTE la fecha EXACTA.\n      - Si la fecha_solicitud COINCIDE EXACTAMENTE con una fecha dentro de fechas_ocupado → está ocupado ese día → menor puntuación.\n      - Si la fecha_solicitud NO aparece en fechas_ocupado → está disponible ese día → mayor puntuación.\n      - NO debes penalizar por días anteriores ni posteriores. SOLO importa la coincidencia exacta.\n      - El comentario debe indicar clara y explícitamente si ese día está disponible o si está ocupado EXACTAMENTE en esa fecha.\n\n   C) Balanceo semanal (20%):\n      - Menos viajes_semana = mayor puntuación.\n      - Más viajes_semana = menor puntuación.\n\nNo muestres en los comentarios de las respuestas nada sobre el porcentaje de puntuación de estos literales.\n\n4. Debes calcular una puntuación inicial entre 0 y 1 para cada candidato usando los tres criterios.\n5. Luego normaliza todas las puntuaciones dividiendo cada una para la suma total.\n6. Las probabilidades finales deben:\n   - estar entre 0.00 y 1.00,\n   - estar redondeadas a dos decimales,\n   - sumar EXACTAMENTE 1.00.\n\n7. El “mejor_transportista” es el que tenga la mayor probabilidad final.\n\n8. Se lo más sincero posible en los comentarios. \n   Si un vehículo está libre pero no es el más adecuado para la carga, debes mencionarlo de manera clara.\n\n9. La respuesta debe ser EXCLUSIVAMENTE un JSON siguiendo el formato obligatorio.\n\nFORMATO DE RESPUESTA (NO MODIFICAR):\n\n{\n  \"mejor_transportista\": {\n    \"transportista_id\": <number>,\n    \"transportista_nombre\": \"<string EXACTO recibido más el apellido>\",\n    \"probabilidad\": <number entre 0 y 1 con dos decimales>\n  },\n  \"comentario_ia\": \"<explicación breve del por qué fue seleccionado como el mejor>\",\n  \"lista_completa\": [\n    {\n      \"transportista_id\": <number>,\n      \"transportista_nombre\": \"<string nombre + apellido EXACTO recibido>\",\n      \"vehiculo_tipo\": \"<string EXACTO recibido>\",\n      \"vehiculo_tonelaje\": <number EXACTO recibido>,\n      \"probabilidad\": <number entre 0 y 1 con dos decimales>,\n      \"comentario_ia\": \"<explicación específica sobre adecuación logística, disponibilidad EXACTA y balance semanal>\"\n    }\n  ]\n}\n\nPROHIBICIONES ABSOLUTAS:\n\n- No agregar campos al JSON.\n- No eliminar campos.\n- No escribir nada fuera del JSON.\n- No inventar datos a ningún nivel.\n- No modificar nombres, placas, tonelajes ni ningún valor recibido.\n",
+              "role": "system"
+            },
+            {
+              "content": "=Aquí están los datos que debes analizar en formato JSON:\n\n{{ JSON.stringify($json, null, 2) }}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        960,
+        0
+      ],
+      "id": "29d0a7af-763a-4ff4-b63a-a4f3ed9f9ca2",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "szIBUg5i40nXN9Ea",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "**Nodo final que formatea la respuesta del modelo para el front-end.** ",
+        "height": 240,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1216,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "e10e5d05-5230-4944-b4d1-0783465ba9b8",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3189f1f9-7859-4a04-b33a-5d5d3fb09795",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "564b2b9adc1e6b5a4441336470d55c7ce3a4e45764da5a926e0c11e894426a76"
+  },
+  "id": "i3rj6E2VbrKOm5aH",
+  "tags": []
+}

@@ -5,6 +5,7 @@ import './estilosSolicitudes.css';
 const SolicitarServicio = ({ onClose }) => {
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
   const [tipoCarga, setTipoCarga] = useState('');
   const [fechaSolicitud, setFechaSolicitud] = useState('');
   const [error, setError] = useState(null);
@@ -16,6 +17,7 @@ const SolicitarServicio = ({ onClose }) => {
     const data = {
       origen,
       destino,
+      tipo_vehiculo: tipoVehiculo,
       tipo_carga: tipoCarga,
       fecha_solicitud: fechaSolicitud
     };
@@ -24,8 +26,10 @@ const SolicitarServicio = ({ onClose }) => {
       await crearSolicitud(data, localStorage.getItem('authToken'));
       setSuccessMessage("Solicitud creada con éxito");
       setError(null);
+      
       setOrigen('');
       setDestino('');
+      setTipoVehiculo('');
       setTipoCarga('');
       setFechaSolicitud('');
     } catch (err) {
@@ -65,6 +69,20 @@ const SolicitarServicio = ({ onClose }) => {
           required
           placeholder="Ciudad o dirección de destino"
         />
+
+        <label>Tipo de Vehículo</label>
+        <select
+          value={tipoVehiculo}
+          onChange={(e) => setTipoVehiculo(e.target.value)}
+          required
+        >
+          <option value="">Seleccione un vehículo</option>
+          <option value="Volqueta">Volqueta</option>
+          <option value="Camión">Camión</option>
+          <option value="Trailer">Trailer</option>
+          <option value="Furgón">Furgón</option>
+          <option value="Otro">Otro</option>
+        </select>
 
         <label>Tipo de Carga</label>
         <input

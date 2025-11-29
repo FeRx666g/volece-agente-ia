@@ -30,5 +30,7 @@ class DatasetTurnosIA(models.Model):
         ('completado', 'Completado')
     ])
 
+    comentario_ia = models.TextField(blank=True, null=True)
+
     def __str__(self):
         return f"Turno para {self.transportista} con vehículo {self.vehiculo} el {self.fecha_turno}"

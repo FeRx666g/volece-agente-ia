@@ -5,7 +5,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(16, 40, 20, 0.8); /* tono más oscuro, menos saturado */
+  background: rgba(16, 40, 20, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,7 +14,7 @@
 
 /* Formulario centrado con fondo más suave */
 .form-solicitar-servicio {
-  background: #1f3524; /* verde sobrio */
+  background: #1f3524;
   padding: 25px 30px;
   border-radius: var(--radius);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -51,7 +51,7 @@
 /* Título */
 .form-solicitar-servicio h2 {
   margin-bottom: 15px;
-  color: #a3d9a5; /* verde pastel */
+  color: #a3d9a5;
   font-weight: 700;
   font-size: 20px;
   text-align: center;
@@ -65,23 +65,33 @@
   text-align: center;
 }
 
-/* Inputs */
+/* Inputs y Select - MODIFICADO */
 .form-solicitar-servicio input[type="text"],
-.form-solicitar-servicio input[type="date"] {
+.form-solicitar-servicio input[type="date"],
+.form-solicitar-servicio select {
   padding: 8px 10px;
-  border: 1.5px solid #88c99c; /* verde claro */
+  border: 1.5px solid #88c99c;
   border-radius: var(--radius-sm);
   font-size: 14px;
   outline: none;
   color: white;
-  background-color: #2a4432; /* verde más oscuro */
-  height: 32px;
+  background-color: #2a4432;
+  height: 38px; /* Ajustado ligeramente para que el select no se vea aplastado */
   text-align: center;
   transition: border-color 0.3s ease;
+  width: 100%; /* Asegura que ocupen el ancho disponible */
+  box-sizing: border-box;
+}
+
+/* Estilo para las opciones del select para que no salgan blancas */
+.form-solicitar-servicio select option {
+  background-color: #1f3524;
+  color: white;
 }
 
 .form-solicitar-servicio input[type="text"]:focus,
-.form-solicitar-servicio input[type="date"]:focus {
+.form-solicitar-servicio input[type="date"]:focus,
+.form-solicitar-servicio select:focus {
   border-color: #a3d9a5;
   box-shadow: 0 0 6px #a3d9a5;
 }
@@ -95,7 +105,7 @@
 }
 
 .form-success {
-  color: #a5f5c4; /* verde menta */
+  color: #a5f5c4;
   font-weight: 600;
   font-size: 13px;
   text-align: center;
@@ -110,13 +120,13 @@
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  background: linear-gradient(135deg, #3d8f58, #6cbf7e); /* verde medio */
+  background: linear-gradient(135deg, #3d8f58, #6cbf7e);
   color: white;
   box-shadow: 0 5px 15px rgba(76, 175, 80, 0.35);
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, #2e7d44, #56a86a); /* más oscuro al hover */
+  background: linear-gradient(135deg, #2e7d44, #56a86a);
   box-shadow: 0 7px 25px rgba(76, 175, 80, 0.5);
 }

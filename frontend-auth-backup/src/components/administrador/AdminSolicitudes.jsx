@@ -8,7 +8,6 @@ const API_USUARIOS_URL = 'http://127.0.0.1:8000/api/usuarios/';
 const API_ASIGNAR_TURNO_URL = `${API_SERVICIOS_URL}asignar-turno/`;
 const API_CREAR_TURNO_URL = `${API_SERVICIOS_URL}solicitudes/crear-turno/`;
 
-
 const AdminSolicitudes = () => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [error, setError] = useState(null);
@@ -53,6 +52,14 @@ const AdminSolicitudes = () => {
 
       const solicitudesConPred = await Promise.all(
         listaSolicitudes.map(async (solicitud) => {
+          if (solicitud.estado === 'asignado') {
+            return {
+              ...solicitud,
+              predicciones: [],
+              selectedTransportistaId: null,
+            };
+          }
+
           let mejor = null;
           let listaCompletaN8N = null;
 
@@ -148,10 +155,30 @@ const AdminSolicitudes = () => {
     setUpdatingId(id);
     try {
       const solicitud = solicitudes.find((s) => s.id === id);
+      if (!solicitud) {
+        throw new Error('Solicitud no encontrada en el estado local');
+      }
+
       let transportistaId = solicitud?.selectedTransportistaId || null;
+
+      if (!transportistaId && solicitud.transportista_asignado_id) {
+        transportistaId = solicitud.transportista_asignado_id;
+      }
 
       if (!transportistaId && solicitud?.predicciones?.length > 0) {
         transportistaId = solicitud.predicciones[0].transportista_id;
+      }
+
+      let comentarioIASeleccionado = null;
+      if (
+        nuevoEstado === 'asignado' &&
+        solicitud?.predicciones?.length > 0 &&
+        transportistaId
+      ) {
+        const predSel = solicitud.predicciones.find(
+          (p) => p.transportista_id === transportistaId
+        );
+        comentarioIASeleccionado = predSel?.comentario || null;
       }
 
       if (['asignado', 'rechazado'].includes(nuevoEstado)) {
@@ -159,12 +186,15 @@ const AdminSolicitudes = () => {
           solicitud_id: id,
           transportista_id: transportistaId,
           nuevo_estado: nuevoEstado,
+          ...(nuevoEstado === 'asignado' && { comentario_ia: comentarioIASeleccionado }),
         };
 
         await axios.post(API_CREAR_TURNO_URL, payloadTurno, { headers });
       } else {
         const payload = { estado: nuevoEstado };
-        await axios.patch(`${API_SERVICIOS_URL}solicitudes/${id}/`, payload, { headers });
+        await axios.patch(`${API_SERVICIOS_URL}solicitudes/${id}/`, payload, {
+          headers,
+        });
       }
 
       await fetchSolicitudes();
@@ -182,7 +212,7 @@ const AdminSolicitudes = () => {
   }, []);
 
   return (
-    <div className="admin-solicitudes-container" style={{ padding: '20px' }}>
+    <div className="admin-solicitudes-container" >
       <h2>Solicitudes - Administrador</h2>
       {loading && <p>Cargando solicitudes...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
@@ -197,7 +227,7 @@ const AdminSolicitudes = () => {
             <th>Tipo de carga</th>
             <th>Fecha</th>
             <th>Estado</th>
-            <th>Transportista sugerido</th>
+            <th>Transportista</th>
             <th>Comentario IA</th>
             <th>Acciones</th>
           </tr>
@@ -209,6 +239,8 @@ const AdminSolicitudes = () => {
             </tr>
           ) : (
             solicitudes.map((s) => {
+              const esAsignado = s.estado === 'asignado';
+
               const opcionSeleccionada = s.predicciones?.find(
                 (p) => p.transportista_id === s.selectedTransportistaId
               );
@@ -225,8 +257,13 @@ const AdminSolicitudes = () => {
                   <td>{s.fecha_solicitud}</td>
                   <td>{s.estado}</td>
 
+                  {/* ==== COLUMNA TRANSPORTISTA ==== */}
                   <td>
-                    {s.predicciones && s.predicciones.length > 0 ? (
+                    {esAsignado && s.transportista_asignado_nombre ? (
+                      <span>
+                        {s.transportista_asignado_nombre} - Asignado
+                      </span>
+                    ) : s.predicciones && s.predicciones.length > 0 ? (
                       <select
                         value={s.selectedTransportistaId || ''}
                         onChange={(e) => {
@@ -265,16 +302,22 @@ const AdminSolicitudes = () => {
                           );
                         })}
                       </select>
-
                     ) : (
                       'Sin opciones'
                     )}
                   </td>
 
+                  {/* ==== COLUMNA COMENTARIO ==== */}
                   <td className="cell-comment">
-                    <div title={infoMostrar?.comentario || 'Comentario no disponible'}>
-                      {infoMostrar?.comentario || 'Comentario no disponible'}
-                    </div>
+                    {esAsignado && s.comentario_ia_asignado ? (
+                      <div title={s.comentario_ia_asignado}>
+                        {s.comentario_ia_asignado}
+                      </div>
+                    ) : (
+                      <div title={infoMostrar?.comentario || 'Comentario no disponible'}>
+                        {infoMostrar?.comentario || 'Comentario no disponible'}
+                      </div>
+                    )}
                   </td>
 
                   <td className="actions-cell">

@@ -56,7 +56,6 @@ class SolicitudDetailView(generics.RetrieveUpdateAPIView):
 N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
 
 class AsignarTurnoIAView(APIView):
-   
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser] 
 
@@ -71,6 +70,12 @@ class AsignarTurnoIAView(APIView):
 
         solicitud = get_object_or_404(SolicitudServicio, pk=id_solicitud)
 
+        if solicitud.estado == 'asignado':
+            return Response(
+                {"detail": "La solicitud ya fue asignada y no debe enviarse nuevamente a IA."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         payload = {
             "id_solicitud": solicitud.id,
             "origen": getattr(solicitud, "origen", None),
@@ -82,7 +87,7 @@ class AsignarTurnoIAView(APIView):
         }
 
         try:
-            resp = requests.post(N8N_URL_ASIGNAR_TURNO, json=payload, timeout=15)
+            resp = requests.post(N8N_URL_ASIGNAR_TURNO, json=payload, timeout=60)
             resp.raise_for_status()
             data = resp.json()
         except Exception as e:
@@ -103,7 +108,8 @@ class CrearTurnoDesdeSolicitudView(APIView):
     def post(self, request, *args, **kwargs):
         solicitud_id = request.data.get('solicitud_id')
         transportista_id = request.data.get('transportista_id')
-        nuevo_estado = request.data.get('nuevo_estado') 
+        nuevo_estado = request.data.get('nuevo_estado')
+        comentario_ia = request.data.get('comentario_ia')
 
         if not solicitud_id or not nuevo_estado:
             return Response(
@@ -151,6 +157,8 @@ class CrearTurnoDesdeSolicitudView(APIView):
         }
         estado_vehiculo_dataset = estado_map.get(vehiculo.estado, 'activo')
 
+        comentario_final = comentario_ia if nuevo_estado == 'asignado' else None
+
         if turno is None:
             fecha_turno = solicitud.fecha_solicitud or timezone.localdate()
 
@@ -162,6 +170,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
                 estado_vehiculo=estado_vehiculo_dataset,
                 vehiculo_operativo=(vehiculo.estado == 'ACTIVO'),
                 estado_solicitud=solicitud.estado,
+                comentario_ia=comentario_final,
             )
         else:
             turno.transportista_id = transportista_id
@@ -169,6 +178,10 @@ class CrearTurnoDesdeSolicitudView(APIView):
             turno.estado_vehiculo = estado_vehiculo_dataset
             turno.vehiculo_operativo = (vehiculo.estado == 'ACTIVO')
             turno.estado_solicitud = solicitud.estado
+
+            if comentario_final is not None:
+                turno.comentario_ia = comentario_final
+
             turno.save()
 
         serializer = DatasetTurnosIASerializer(turno)

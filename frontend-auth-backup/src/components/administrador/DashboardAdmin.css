@@ -122,6 +122,12 @@ body {
   padding: 20rem; 
 }
 
+.dashboard-content-admin {
+  flex: 1;
+  padding-top: 2rem;
+  overflow-y: auto;
+}
+
 .dashboard-wrapper {
   width: 100%;
   max-width: 100%; 

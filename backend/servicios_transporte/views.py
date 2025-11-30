@@ -80,6 +80,7 @@ class AsignarTurnoIAView(APIView):
             "id_solicitud": solicitud.id,
             "origen": getattr(solicitud, "origen", None),
             "destino": getattr(solicitud, "destino", None),
+            "tipo_vehiculo": getattr(solicitud, "tipo_vehiculo", None),
             "tipo_carga": getattr(solicitud, "tipo_carga", None),
             "fecha_solicitud": getattr(solicitud, "fecha_solicitud", None).isoformat()
             if getattr(solicitud, "fecha_solicitud", None) is not None

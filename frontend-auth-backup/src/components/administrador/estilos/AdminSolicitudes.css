@@ -44,7 +44,7 @@ table {
 }
 
 th, td {
-  padding: 12px 15px;
+  padding: 10px 10px;
   text-align: left;
   border: 1px solid #ddd;
 }
@@ -75,7 +75,14 @@ td[colspan="10"] {
   color: #777;
 }
 
-/* Acciones (íconos) */
+.col-transportista {
+  width: 9rem;
+}
+
+.cell-comment{
+  text-align: justify;
+}
+
 .actions-cell {
   text-align: center;
 }

@@ -41,7 +41,7 @@ export default function DashboardAdmin() {
         </header>
 
         {/* AQUÍ ES IMPORTANTE: envolver el Outlet */}
-        <div className="dashboard-content">
+        <div className="dashboard-content-admin">
           <Outlet />
         </div>
 

@@ -66,7 +66,10 @@ const AdminSolicitudes = () => {
           try {
             const resIA = await axios.post(
               API_ASIGNAR_TURNO_URL,
-              { id_solicitud: solicitud.id },
+              { 
+                id_solicitud: solicitud.id,
+                tipo_vehiculo: solicitud.tipo_vehiculo 
+              },
               { headers }
             );
 
@@ -224,10 +227,11 @@ const AdminSolicitudes = () => {
             <th>Cliente</th>
             <th>Origen</th>
             <th>Destino</th>
+            <th>Tipo de Vehículo</th>
             <th>Tipo de carga</th>
             <th>Fecha</th>
             <th>Estado</th>
-            <th>Transportista</th>
+            <th className="col-transportista">Transportista</th>
             <th>Comentario IA</th>
             <th>Acciones</th>
           </tr>
@@ -235,7 +239,7 @@ const AdminSolicitudes = () => {
         <tbody>
           {solicitudes.length === 0 ? (
             <tr>
-              <td colSpan="10" className="td-centered">No hay solicitudes</td>
+              <td colSpan="11" className="td-centered">No hay solicitudes</td>
             </tr>
           ) : (
             solicitudes.map((s) => {
@@ -253,18 +257,21 @@ const AdminSolicitudes = () => {
                   <td>{s.cliente_nombre_completo || 'N/A'}</td>
                   <td>{s.origen}</td>
                   <td>{s.destino}</td>
-                  <td>{s.tipo_carga}</td>
+
+                  <td style={{textAlign: 'center'}}>{s.tipo_vehiculo || '-'}</td>
+
+                  <td className="col-tipo-carga">{s.tipo_carga}</td>
                   <td>{s.fecha_solicitud}</td>
                   <td>{s.estado}</td>
 
-                  {/* ==== COLUMNA TRANSPORTISTA ==== */}
-                  <td>
+                  <td className="col-transportista">
                     {esAsignado && s.transportista_asignado_nombre ? (
                       <span>
                         {s.transportista_asignado_nombre} - Asignado
                       </span>
                     ) : s.predicciones && s.predicciones.length > 0 ? (
                       <select
+                        className="col-transportista"
                         value={s.selectedTransportistaId || ''}
                         onChange={(e) => {
                           const nuevoId = e.target.value ? parseInt(e.target.value, 10) : null;
@@ -307,7 +314,6 @@ const AdminSolicitudes = () => {
                     )}
                   </td>
 
-                  {/* ==== COLUMNA COMENTARIO ==== */}
                   <td className="cell-comment">
                     {esAsignado && s.comentario_ia_asignado ? (
                       <div title={s.comentario_ia_asignado}>

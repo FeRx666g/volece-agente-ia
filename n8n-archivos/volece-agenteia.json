@@ -69,7 +69,7 @@
     {
       "parameters": {
         "content": "**Nodo que recibe los datos de la solicitud del cliente** ",
-        "height": 240,
+        "height": 256,
         "width": 160,
         "color": 4
       },
@@ -85,7 +85,7 @@
     {
       "parameters": {
         "content": "**Nodo que consulta los transportistas activos y sus datos.** ",
-        "height": 240,
+        "height": 256,
         "width": 192,
         "color": 2
       },
@@ -123,7 +123,7 @@
     {
       "parameters": {
         "content": "**Nodo que consulta las fechas no disponibles de los transportistas y la cantidad de asignaciones en la semana.** ",
-        "height": 240,
+        "height": 256,
         "width": 304,
         "color": 6
       },
@@ -139,7 +139,7 @@
     {
       "parameters": {
         "content": "**Nodo que une la solicitud del cliente y las consultas SQL para el modelo de IA.** ",
-        "height": 240,
+        "height": 256,
         "width": 224,
         "color": 5
       },
@@ -155,7 +155,7 @@
     {
       "parameters": {
         "content": "**Nodo que ejecuta el modelo de IA según la información proporcionada.** ",
-        "height": 240,
+        "height": 256,
         "width": 256,
         "color": 2
       },
@@ -179,7 +179,7 @@
         "messages": {
           "values": [
             {
-              "content": "Eres un asistente especializado en logística y asignación de transporte de carga.\n\nRecibirás un JSON con dos secciones:\n\n- \"solicitud\": contiene id_solicitud, origen, destino, tipo_carga y fecha_solicitud.\n- \"candidatos\": lista REAL de transportistas con:\n  - transportista_id\n  - transportista_nombre\n  - vehiculo_tipo\n  - vehiculo_tonelaje\n  - vehiculo_placa\n  - observaciones\n  - fechas_ocupado (fechas EXACTAS donde ya tiene viajes asignados)\n  - viajes_semana (cantidad de asignaciones en la semana actual)\n\nREGLAS ESTRICTAS (OBLIGATORIAS):\n\n1. NO debes inventar transportistas ni ningún dato.\n2. NO debes modificar ningún valor del JSON.\n3. Debes evaluar a cada candidato combinando tres criterios obligatorios:\n\n   A) Compatibilidad logística (50%):\n      - tipo de vehículo, tonelaje y adecuación a la carga.\n\n   B) Disponibilidad en la fecha_solicitud (30%):\n      - DEBES considerar ÚNICAMENTE la fecha EXACTA.\n      - Si la fecha_solicitud COINCIDE EXACTAMENTE con una fecha dentro de fechas_ocupado → está ocupado ese día → menor puntuación.\n      - Si la fecha_solicitud NO aparece en fechas_ocupado → está disponible ese día → mayor puntuación.\n      - NO debes penalizar por días anteriores ni posteriores. SOLO importa la coincidencia exacta.\n      - El comentario debe indicar clara y explícitamente si ese día está disponible o si está ocupado EXACTAMENTE en esa fecha.\n\n   C) Balanceo semanal (20%):\n      - Menos viajes_semana = mayor puntuación.\n      - Más viajes_semana = menor puntuación.\n\nNo muestres en los comentarios de las respuestas nada sobre el porcentaje de puntuación de estos literales.\n\n4. Debes calcular una puntuación inicial entre 0 y 1 para cada candidato usando los tres criterios.\n5. Luego normaliza todas las puntuaciones dividiendo cada una para la suma total.\n6. Las probabilidades finales deben:\n   - estar entre 0.00 y 1.00,\n   - estar redondeadas a dos decimales,\n   - sumar EXACTAMENTE 1.00.\n\n7. El “mejor_transportista” es el que tenga la mayor probabilidad final.\n\n8. Se lo más sincero posible en los comentarios. \n   Si un vehículo está libre pero no es el más adecuado para la carga, debes mencionarlo de manera clara.\n\n9. La respuesta debe ser EXCLUSIVAMENTE un JSON siguiendo el formato obligatorio.\n\nFORMATO DE RESPUESTA (NO MODIFICAR):\n\n{\n  \"mejor_transportista\": {\n    \"transportista_id\": <number>,\n    \"transportista_nombre\": \"<string EXACTO recibido más el apellido>\",\n    \"probabilidad\": <number entre 0 y 1 con dos decimales>\n  },\n  \"comentario_ia\": \"<explicación breve del por qué fue seleccionado como el mejor>\",\n  \"lista_completa\": [\n    {\n      \"transportista_id\": <number>,\n      \"transportista_nombre\": \"<string nombre + apellido EXACTO recibido>\",\n      \"vehiculo_tipo\": \"<string EXACTO recibido>\",\n      \"vehiculo_tonelaje\": <number EXACTO recibido>,\n      \"probabilidad\": <number entre 0 y 1 con dos decimales>,\n      \"comentario_ia\": \"<explicación específica sobre adecuación logística, disponibilidad EXACTA y balance semanal>\"\n    }\n  ]\n}\n\nPROHIBICIONES ABSOLUTAS:\n\n- No agregar campos al JSON.\n- No eliminar campos.\n- No escribir nada fuera del JSON.\n- No inventar datos a ningún nivel.\n- No modificar nombres, placas, tonelajes ni ningún valor recibido.\n",
+              "content": "Eres un asistente experto en logística y gestión de flotas de transporte. Tu redacción debe ser profesional, clara, concisa y con buena ortografía.\n\nRecibirás un JSON con dos secciones:\n1. \"solicitud\": contiene id_solicitud, origen, destino, tipo_carga, fecha_solicitud y \"tipo_vehiculo\" (este último es el vehículo PREFERIDO por el cliente).\n2. \"candidatos\": lista REAL de transportistas disponibles con sus vehículos, capacidades y fechas ocupadas.\n\nREGLAS ESTRICTAS DE EVALUACIÓN:\n\n1. NO inventes datos. Usa solo la información provista.\n2. Evalúa a cada candidato basándote en estos criterios ponderados:\n\n   A) Compatibilidad del Vehículo (40%):\n      - Si el \"vehiculo_tipo\" del candidato COINCIDE con el \"tipo_vehiculo\" solicitado por el cliente, otorga la máxima puntuación en este apartado.\n      - Si NO coincide, evalúa técnicamente si el vehículo es capaz de llevar la \"tipo_carga\".\n\n   B) Disponibilidad en la Fecha (CRÍTICO - 35%):\n      - Revisa la \"fecha_solicitud\".\n      - Compara esa fecha EXCLUSIVAMENTE con las fechas exactas en la lista \"fechas_ocupado\" del candidato.\n      - REGLA DE ORO: Si la \"fecha_solicitud\" NO aparece textualmente en \"fechas_ocupado\", el vehículo está 100% DISPONIBLE.\n      - PROHIBIDO penalizar, asumir retrasos o inferir indisponibilidad basándose en fechas anteriores o posteriores (ej. \"ayer estuvo ocupado\"). Los viajes son independientes; solo importa el día exacto solicitado.\n\n   C) Capacidad y Balanceo (25%):\n      - El \"vehiculo_tonelaje\" debe ser suficiente.\n      - Prioriza a quienes tengan menos \"viajes_semana\".\n\n3. Cálculo de Probabilidades:\n   - Normaliza las puntuaciones para obtener una probabilidad entre 0.00 y 1.00.\n   - La suma de todas las probabilidades debe ser EXACTAMENTE 1.00.\n\nREGLAS DE REDACCIÓN Y COMENTARIOS:\n\n- \"comentario_ia\": Sé sincero y directo.\n- Si el vehículo recomendado NO es el que el cliente pidió, explica: \"El cliente solicitó [Vehículo pedido], pero...\" y justifica técnicamente.\n- Si el vehículo coincide, confírmalo: \"Coincide con el vehículo solicitado y tiene disponibilidad confirmada.\"\n- NUNCA menciones \"posible indisponibilidad\" por viajes en días previos. Si la fecha no está en la lista de ocupados, está libre.\n\nFORMATO DE RESPUESTA JSON (NO MODIFICAR ESTRUCTURA):\n\n{\n  \"mejor_transportista\": {\n    \"transportista_id\": <number>,\n    \"transportista_nombre\": \"<string nombre + apellido>\",\n    \"probabilidad\": <number>\n  },\n  \"comentario_ia\": \"<Resumen general>\",\n  \"lista_completa\": [\n    {\n      \"transportista_id\": <number>,\n      \"transportista_nombre\": \"<string nombre + apellido>\",\n      \"vehiculo_tipo\": \"<string>\",\n      \"vehiculo_tonelaje\": <number>,\n      \"probabilidad\": <number>,\n      \"comentario_ia\": \"<Explicación específica>\"\n    }\n  ]\n}",
               "role": "system"
             },
             {
@@ -207,9 +207,9 @@
     {
       "parameters": {
         "content": "**Nodo final que formatea la respuesta del modelo para el front-end.** ",
-        "height": 240,
+        "height": 256,
         "width": 192,
-        "color": 5
+        "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
@@ -279,11 +279,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3189f1f9-7859-4a04-b33a-5d5d3fb09795",
+  "versionId": "55e89147-6112-44b2-ae95-e791714df080",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "564b2b9adc1e6b5a4441336470d55c7ce3a4e45764da5a926e0c11e894426a76"

@@ -3,7 +3,7 @@ from .models import SolicitudServicio
 from gestion_transporte.models import DatasetTurnosIA
 
 class SolicitudServicioSerializer(serializers.ModelSerializer):
-    cliente_nombre_completo = serializers.SerializerMethodField()
+    cliente_nombre = serializers.SerializerMethodField()
     transportista_asignado_id = serializers.SerializerMethodField()
     transportista_asignado_nombre = serializers.SerializerMethodField()
     comentario_ia_asignado = serializers.SerializerMethodField()
@@ -15,19 +15,21 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
             'cliente',
             'origen',
             'destino',
-            'tipo_vehiculo', 
+            'tipo_vehiculo',
             'tipo_carga',
             'fecha_solicitud',
             'estado',
-            'cliente_nombre_completo',
+            'cliente_nombre',
             'transportista_asignado_id',
             'transportista_asignado_nombre',
             'comentario_ia_asignado',
         ]
         read_only_fields = ('cliente',)
 
-    def get_cliente_nombre_completo(self, obj):
-        return f"{obj.cliente.last_name} {obj.cliente.first_name}"
+    def get_cliente_nombre(self, obj):
+        if obj.cliente:
+            return f"{obj.cliente.first_name} {obj.cliente.last_name}"
+        return "Cliente Desconocido"
 
     def _get_turno(self, obj):
         return DatasetTurnosIA.objects.filter(solicitud=obj).first()
@@ -46,8 +48,9 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
         turno = self._get_turno(obj)
         return turno.comentario_ia if turno else None
 
-
 class DatasetTurnosIASerializer(serializers.ModelSerializer):
+    solicitud_data = SolicitudServicioSerializer(source='solicitud', read_only=True)
+
     class Meta:
         model = DatasetTurnosIA
         fields = '__all__'

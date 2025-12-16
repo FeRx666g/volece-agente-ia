@@ -11,6 +11,7 @@ const Auth = () => {
     first_name: '',
     last_name: '',
     email: '',
+    telefono: '', 
     cedula_ruc: '',
     password: '',
     rol: 'CLIENTE'
@@ -86,10 +87,9 @@ const Auth = () => {
     setError('');
     setSuccess('');
 
-    // Validaciones
-    const { username, first_name, last_name, email, cedula_ruc, password } = registerForm;
+    const { username, first_name, last_name, email, telefono, cedula_ruc, password } = registerForm;
 
-    if (!username || !first_name || !last_name || !email || !cedula_ruc || !password) {
+    if (!username || !first_name || !last_name || !email || !telefono || !cedula_ruc || !password) {
       setError('Por favor, completa todos los campos.');
       return;
     }
@@ -108,6 +108,12 @@ const Auth = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('El correo electrónico no tiene un formato válido.');
+      return;
+    }
+
+    const telefonoRegex = /^\d{10}$/;
+    if (!telefonoRegex.test(telefono)) {
+      setError('El teléfono debe tener 10 dígitos numéricos válidos.');
       return;
     }
 
@@ -181,13 +187,18 @@ const Auth = () => {
               <div className='auth-infield'>
                 <input type='email' name='email' placeholder='Correo electrónico' required onChange={handleRegisterChange} />
               </div>
+              
               <div className='auth-infield'>
-                <input type='text' name='cedula_ruc' placeholder='Cédula o RUC' required onChange={handleRegisterChange} />
+                <input type='text' name='telefono' placeholder='Teléfono celular' maxLength="10" required onChange={handleRegisterChange} />
+              </div>
+
+              <div className='auth-infield'>
+                <input type='text' name='cedula_ruc' placeholder='Cédula o RUC' maxLength="13" required onChange={handleRegisterChange} />
               </div>
               <div className='auth-infield'>
                 <input type='password' name='password' placeholder='Contraseña' required onChange={handleRegisterChange} />
               </div>
-              {error && <p className='auth-error'>{error}</p>}
+              {error && <p className='auth-error' style={{whiteSpace: 'pre-line'}}>{error}</p>}
               {success && <p className='auth-success'>{success}</p>}
               <button type='submit'>Registrarse</button>
             </form>

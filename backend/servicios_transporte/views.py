@@ -16,6 +16,7 @@ from django.utils import timezone
 
 from gestion_transporte.models import DatasetTurnosIA
 from gestion_vehiculos.models import Vehiculo
+from gestion_usuarios.models import Usuario
 
 from .models import SolicitudServicio
 from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer
@@ -54,6 +55,8 @@ class SolicitudDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAdminUser]
 
 N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
+
+N8N_WEBHOOK_WHATSAPP = "http://localhost:5678/webhook/notificacion-transportista"
 
 class AsignarTurnoIAView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -107,6 +110,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
+
         solicitud_id = request.data.get('solicitud_id')
         transportista_id = request.data.get('transportista_id')
         nuevo_estado = request.data.get('nuevo_estado')
@@ -131,6 +135,11 @@ class CrearTurnoDesdeSolicitudView(APIView):
             )
 
         solicitud = get_object_or_404(SolicitudServicio, pk=solicitud_id)
+        
+        try:
+            transportista_obj = Usuario.objects.get(pk=transportista_id)
+        except Usuario.DoesNotExist:
+             return Response({"detail": "Transportista no encontrado."}, status=status.HTTP_400_BAD_REQUEST)
 
         turno = DatasetTurnosIA.objects.filter(solicitud=solicitud).first()
 
@@ -185,5 +194,34 @@ class CrearTurnoDesdeSolicitudView(APIView):
 
             turno.save()
 
+        print(f"     1. Nuevo Estado: '{nuevo_estado}' (Esperado: 'asignado')")
+        print(f"     2. Tiene Teléfono?: {bool(transportista_obj.telefono)}")
+            
+        if nuevo_estado == 'asignado' and transportista_obj.telefono:
+            
+            payload_whatsapp = {
+                "telefono": transportista_obj.telefono,
+                "nombre_transportista": f"{transportista_obj.first_name} {transportista_obj.last_name}",
+                "origen": solicitud.origen,
+                "destino": solicitud.destino,
+                "fecha_servicio": solicitud.fecha_solicitud.strftime('%Y-%m-%d')
+            }
+
+            
+            try:
+                requests.post(N8N_WEBHOOK_WHATSAPP, json=payload_whatsapp, timeout=3)
+            except requests.exceptions.RequestException as e:
+                print(f"ERROR: Fallo la conexión con el webhook de n8n: {e}")
+
         serializer = DatasetTurnosIASerializer(turno)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class MisAsignacionesView(generics.ListAPIView):
+    serializer_class = DatasetTurnosIASerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DatasetTurnosIA.objects.filter(
+            transportista=self.request.user,
+            solicitud__estado='asignado'  
+        ).order_by('-fecha_turno')

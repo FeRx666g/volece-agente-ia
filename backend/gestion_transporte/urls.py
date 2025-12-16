@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/transporte/', include('gestion_transporte.api_urls')),   
     path('api/vehiculos/', include('gestion_vehiculos.urls')), 
     path('api/reportes/', include('reportes.urls')),
+    path('api/finanzas/', include('gestion_finanzas.urls')),
 ]

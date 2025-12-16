@@ -5,6 +5,8 @@ from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from django.utils.timezone import now
 from xhtml2pdf import pisa
+from django.db.models import Sum
+from gestion_finanzas.models import Finanza
 
 from gestion_transporte.models import Usuario, SolicitudServicio, Vehiculo
 
@@ -303,6 +305,56 @@ def reporte_vehiculos_pdf(request):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="reporte_vehiculos.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generando PDF', status=500)
+    return response
+
+# =========================================================
+# REPORTE PDF FINANZAS
+# =========================================================
+def reporte_finanzas_pdf(request):
+    template = get_template('reportes/finanzas_pdf.html')
+
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    tipo = request.GET.get('tipo')
+
+    qs = Finanza.objects.all().order_by('-fecha')
+
+    if fecha_inicio:
+        try:
+            fecha_d = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+            qs = qs.filter(fecha__gte=fecha_d)
+        except ValueError:
+            pass
+
+    if fecha_fin:
+        try:
+            fecha_h = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            qs = qs.filter(fecha__lte=fecha_h)
+        except ValueError:
+            pass
+
+    if tipo:
+        qs = qs.filter(tipo=tipo)
+
+    total_ingresos = qs.filter(tipo='INGRESO').aggregate(Sum('monto'))['monto__sum'] or 0
+    total_gastos = qs.filter(tipo='GASTO').aggregate(Sum('monto'))['monto__sum'] or 0
+    balance = total_ingresos - total_gastos
+
+    html = template.render({
+        'movimientos': qs,
+        'ingresos': total_ingresos,
+        'gastos': total_gastos,
+        'balance': balance,
+        'fecha': now().strftime('%d/%m/%Y'),
+        'filtros': {'desde': fecha_inicio, 'hasta': fecha_fin}
+    })
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_finanzas.pdf"'
+    
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
         return HttpResponse('Error generando PDF', status=500)

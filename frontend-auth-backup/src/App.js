@@ -12,7 +12,6 @@ import Auth from "./pages/Auth";
 import SolicitarServicio from './components/cliente/Solicitudes/SolicitarServicio';
 import SolicitudesList from './components/cliente/Solicitudes/SolicitudesList';
 
-
 //componentes de administrador
 import DashboardAdmin from './components/administrador/DashboardAdmin';
 import AdminUsers from './components/administrador/AdminUsers';
@@ -20,7 +19,6 @@ import AdminUsers from './components/administrador/AdminUsers';
 import AdminFinanzas from './components/administrador/FinancieroList';
 import Mensualidades from './components/administrador/FormularioCuota';
 import ListadoCuotas from "./components/administrador/ListadoCuotas";*/ 
-
 
 import AdminVehiculos from './components/administrador/AdminVehiculos';
 import AdminReportes from './components/administrador/AdminReportes';
@@ -30,7 +28,7 @@ import RecuperarPassword from './pages/RecuperarPassword';
 import SolicitarRecuperacion from './pages/SolicitarRecuperacion';
 import RegistroVehiculo from './components/administrador/RegistroVehiculo';
 import ListadoVehiculos from './components/administrador/ListadoVehiculos';
-
+import AdminFinanzas from './components/administrador/AdminFinanzas';
 
 // componentes página de inicio
 import TiposDeCargas from './pages/TiposDeCargas';
@@ -74,10 +72,12 @@ function App() {
         <Route path="reportes" element={<AdminReportes />} />
         <Route path="vehiculos/registrar-vehiculo" element={<RegistroVehiculo />} />
         <Route path="vehiculos/listar-vehiculos" element={<ListadoVehiculos />} />
+        <Route path="finanzas" element={<AdminFinanzas />} />
       </Route>
 
         <Route path="/recuperar-password" element={<SolicitarRecuperacion />} />
         <Route path="/restablecer-password/:uid/:token" element={<RecuperarPassword />} />
+        
         </Routes>
       </div>
     </BrowserRouter>

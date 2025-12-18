@@ -34,7 +34,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     cargarUsuarios(); //  Carga los usuarios al entrar
-  },);
+  },[]);
   //manejo de la eliminación de usuarios
   const handleDelete = async (id) => {
     const confirmacion = window.confirm('¿Estás seguro de eliminar este usuario?');

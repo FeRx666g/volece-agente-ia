@@ -8,11 +8,6 @@ from xhtml2pdf import pisa
 
 from gestion_transporte.models import Usuario, SolicitudServicio, Vehiculo
 
-
-# =========================================================
-# PREVIEWS (JSON)
-# =========================================================
-
 # ---------- PREVIEW USUARIOS ----------
 def reporte_usuarios_preview(request):
     search = request.GET.get('search')

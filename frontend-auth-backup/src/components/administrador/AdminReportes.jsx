@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import './estilos/ReportesDashboar.css';
+import axios from 'axios';
+import { FaUserFriends, FaFileInvoice, FaTruck, FaSearch, FaDownload, FaEye, FaFilter, FaCalendarAlt } from 'react-icons/fa';
+import './estilos/ReportesDashboard.css';
 
 const initialFiltros = {
   usuarios: { texto: '', fechaDesde: '', fechaHasta: '' },
@@ -16,26 +18,33 @@ const initialPreviewState = {
 const ReportesDashboard = () => {
   const [filtros, setFiltros] = useState(initialFiltros);
   const [previews, setPreviews] = useState(initialPreviewState);
+  const token = localStorage.getItem('access');
 
   const reportes = [
     {
       id: 'usuarios',
       titulo: 'Reporte de Usuarios',
-      icono: '👤',
+      descripcion: 'Listado completo de personal, conductores y clientes registrados.',
+      icono: <FaUserFriends />,
+      color: '#4e73df',
       pdfEndpoint: 'http://127.0.0.1:8000/api/reportes/usuarios/pdf/',
       previewEndpoint: 'http://127.0.0.1:8000/api/reportes/usuarios/preview/',
     },
     {
       id: 'solicitudes',
       titulo: 'Reporte de Solicitudes',
-      icono: '📄',
+      descripcion: 'Seguimiento de servicios, estados de entrega y rutas activas.',
+      icono: <FaFileInvoice />,
+      color: '#1cc88a',
       pdfEndpoint: 'http://127.0.0.1:8000/api/reportes/solicitudes/pdf/',
       previewEndpoint: 'http://127.0.0.1:8000/api/reportes/solicitudes/preview/',
     },
     {
       id: 'vehiculos',
       titulo: 'Reporte de Vehículos',
-      icono: '🚚',
+      descripcion: 'Estado de la flota, documentación y asignación de unidades.',
+      icono: <FaTruck />,
+      color: '#f6c23e',
       pdfEndpoint: 'http://127.0.0.1:8000/api/reportes/vehiculos/pdf/',
       previewEndpoint: 'http://127.0.0.1:8000/api/reportes/vehiculos/preview/',
     },
@@ -57,39 +66,36 @@ const ReportesDashboard = () => {
     }));
   };
 
-  const buildUrlWithFilters = (baseUrl, tipo) => {
-    const params = new URLSearchParams();
+  const getParams = (tipo) => {
     const f = filtros[tipo];
-
-    if (f.texto) params.append('search', f.texto);
-    if (f.fechaDesde) params.append('fecha_desde', f.fechaDesde);
-    if (f.fechaHasta) params.append('fecha_hasta', f.fechaHasta);
-    if (f.estado) params.append('estado', f.estado); // solo aplica donde exista
-
-    const query = params.toString();
-    return query ? `${baseUrl}?${query}` : baseUrl;
+    const params = {};
+    if (f.texto) params.search = f.texto;
+    if (f.fechaDesde) params.fecha_desde = f.fechaDesde;
+    if (f.fechaHasta) params.fecha_hasta = f.fechaHasta;
+    if (f.estado) params.estado = f.estado;
+    return params;
   };
 
   const handlePreview = async (reporte) => {
     const { id, previewEndpoint } = reporte;
-    const url = buildUrlWithFilters(previewEndpoint, id);
-
     setPreviews((prev) => ({
       ...prev,
       [id]: { ...prev[id], loading: true, error: null },
     }));
 
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Error al obtener la vista previa');
-      const json = await res.json(); // { total, data }
+      const res = await axios.get(previewEndpoint, {
+        params: getParams(id),
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
+      const listaViajes = res.data.data || res.data.results || [];
       setPreviews((prev) => ({
         ...prev,
         [id]: {
           ...prev[id],
-          data: json.data || [],
-          total: typeof json.total === 'number' ? json.total : (json.data || []).length,
+          data: listaViajes,
+          total: res.data.total || (res.data.results ? res.data.count : listaViajes.length),
           loading: false,
           error: null,
         },
@@ -97,220 +103,185 @@ const ReportesDashboard = () => {
     } catch (err) {
       setPreviews((prev) => ({
         ...prev,
-        [id]: { ...prev[id], loading: false, error: err.message, data: [], total: 0 },
+        [id]: { ...prev[id], loading: false, error: 'No se pudo conectar con el servidor.' },
       }));
     }
   };
 
-  const handleDescargar = (reporte) => {
+  const handleDescargar = async (reporte) => {
     const { id, pdfEndpoint } = reporte;
+    try {
+      const response = await axios.get(pdfEndpoint, {
+        params: getParams(id),
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      });
 
-    // Si ya hay preview y no hay resultados, no descargamos nada
-    if (previews[id].total === 0) {
-      alert('No hay resultados para los filtros seleccionados.');
-      return;
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Volece_Reporte_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert('Error al generar el documento PDF.');
     }
-
-    const urlConFiltros = buildUrlWithFilters(pdfEndpoint, id);
-    window.open(urlConFiltros, '_blank');
   };
 
   return (
-    <div className="reportes-container">
-      <h1>Reportes del Sistema</h1>
+    <div className="report-dashboard">
+      <header className="report-header">
+        <h1>Centro de Reportes</h1>
+        <p>Administre y exporte la información de Volece C.A.</p>
+      </header>
 
-      <div className="card-grid">
+      <div className="report-grid">
         {reportes.map((reporte) => {
-          const prev = previews[reporte.id];
-
+          const state = previews[reporte.id];
           return (
-            <div className="reporte-card" key={reporte.id}>
-              <span className="icon">{reporte.icono}</span>
-              <h3>{reporte.titulo}</h3>
-
-              {/* FILTROS */}
-              <details className="reporte-filtros">
-                <summary>Filtros</summary>
-
-                <div className="filtro-item">
-                  <label>Buscar</label>
-                  <input
-                    type="text"
-                    name="texto"
-                    value={filtros[reporte.id].texto}
-                    onChange={(e) => handleChange(reporte.id, e)}
-                    placeholder={
-                      reporte.id === 'usuarios'
-                        ? 'Nombre, cédula, correo...'
-                        : reporte.id === 'solicitudes'
-                        ? 'Origen, destino, cliente...'
-                        : 'Placa, marca, transportista...'
-                    }
-                  />
-                </div>
-
-                <div className="filtro-item">
-                  <label>Fecha desde</label>
-                  <input
-                    type="date"
-                    name="fechaDesde"
-                    value={filtros[reporte.id].fechaDesde}
-                    onChange={(e) => handleChange(reporte.id, e)}
-                  />
-                </div>
-
-                <div className="filtro-item">
-                  <label>Fecha hasta</label>
-                  <input
-                    type="date"
-                    name="fechaHasta"
-                    value={filtros[reporte.id].fechaHasta}
-                    onChange={(e) => handleChange(reporte.id, e)}
-                  />
-                </div>
-
-                {(reporte.id === 'solicitudes' || reporte.id === 'vehiculos') && (
-                  <div className="filtro-item">
-                    <label>Estado</label>
-                    <select
-                      name="estado"
-                      value={filtros[reporte.id].estado}
-                      onChange={(e) => handleChange(reporte.id, e)}
-                    >
-                      <option value="">Todos</option>
-
-                      {reporte.id === 'solicitudes' && (
-                        <>
-                          <option value="pendiente">Pendiente</option>
-                          <option value="asignado">Asignado</option>
-                          <option value="completado">Completado</option>
-                          <option value="rechazado">Rechazado</option>
-                        </>
-                      )}
-
-                      {reporte.id === 'vehiculos' && (
-                        <>
-                          <option value="ACTIVO">Activo</option>
-                          <option value="INACTIVO">Inactivo</option>
-                          <option value="MANTENIMIENTO">En mantenimiento</option>
-                        </>
-                      )}
-                    </select>
+            <div className="report-card" key={reporte.id}>
+              <div className="card-accent" style={{ backgroundColor: reporte.color }}></div>
+              <div className="card-main-content">
+                <div className="card-info">
+                  <div className="card-icon" style={{ color: reporte.color }}>
+                    {reporte.icono}
                   </div>
-                )}
+                  <div className="card-text">
+                    <h3>{reporte.titulo}</h3>
+                    <p>{reporte.descripcion}</p>
+                  </div>
+                </div>
 
-                <div className="filtros-actions">
-                  <button
-                    type="button"
-                    onClick={() => handleLimpiar(reporte.id)}
-                  >
-                    Limpiar filtros
+                <div className="filter-panel">
+                  <div className="filter-row">
+                    <div className="filter-input-group full">
+                      <FaSearch className="inner-icon" />
+                      <input
+                        type="text"
+                        name="texto"
+                        placeholder="Buscar por palabra clave..."
+                        value={filtros[reporte.id].texto}
+                        onChange={(e) => handleChange(reporte.id, e)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="filter-row">
+                    <div className="filter-input-group">
+                      <FaCalendarAlt className="inner-icon" />
+                      <input
+                        type="date"
+                        name="fechaDesde"
+                        value={filtros[reporte.id].fechaDesde}
+                        onChange={(e) => handleChange(reporte.id, e)}
+                      />
+                    </div>
+                    <div className="filter-input-group">
+                      <FaCalendarAlt className="inner-icon" />
+                      <input
+                        type="date"
+                        name="fechaHasta"
+                        value={filtros[reporte.id].fechaHasta}
+                        onChange={(e) => handleChange(reporte.id, e)}
+                      />
+                    </div>
+                  </div>
+
+                  {(reporte.id === 'solicitudes' || reporte.id === 'vehiculos') && (
+                    <div className="filter-row">
+                      <div className="filter-input-group full">
+                        <FaFilter className="inner-icon" />
+                        <select
+                          name="estado"
+                          value={filtros[reporte.id].estado}
+                          onChange={(e) => handleChange(reporte.id, e)}
+                        >
+                          <option value="">Todos los estados</option>
+                          {reporte.id === 'solicitudes' ? (
+                            <>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="asignado">Asignado</option>
+                              <option value="completado">Completado</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="ACTIVO">Activo</option>
+                              <option value="INACTIVO">Inactivo</option>
+                              <option value="MANTENIMIENTO">Mantenimiento</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <button className="clear-btn" onClick={() => handleLimpiar(reporte.id)}>
+                    Restablecer filtros
                   </button>
                 </div>
-              </details>
 
-              {/* BOTONES ACCIÓN */}
-              <div className="reporte-actions">
-                <button
-                  type="button"
-                  className="btn-secundario"
-                  onClick={() => handlePreview(reporte)}
-                >
-                  Ver vista previa
-                </button>
+                <div className="card-actions">
+                  <button className="btn-action secondary" onClick={() => handlePreview(reporte)} disabled={state.loading}>
+                    {state.loading ? 'Procesando...' : <><FaEye /> Previsualizar</>}
+                  </button>
+                  <button className="btn-action primary" onClick={() => handleDescargar(reporte)}>
+                    <FaDownload /> Generar PDF
+                  </button>
+                </div>
 
-                <button
-                  type="button"
-                  className="btn-principal"
-                  onClick={() => handleDescargar(reporte)}
-                  disabled={prev.total === 0}
-                  title={
-                    prev.total === 0 && prev.total !== null
-                      ? 'No hay resultados para descargar'
-                      : 'Descargar PDF'
-                  }
-                >
-                  Descargar PDF
-                </button>
-              </div>
+                {state.error && <div className="error-alert">{state.error}</div>}
 
-              {/* VISTA PREVIA */}
-              <div className="preview-container">
-                {prev.loading && <p className="preview-info">Cargando vista previa...</p>}
-                {prev.error && <p className="preview-error">{prev.error}</p>}
-
-                {prev.total !== null && !prev.loading && !prev.error && (
-                  <>
-                    <p className="preview-info">
-                      {prev.total === 0
-                        ? 'No se encontraron resultados para estos filtros.'
-                        : `Se encontraron ${prev.total} resultado(s). Mostrando los primeros:`}
-                    </p>
-
-                    {prev.total > 0 && (
-                      <table className="preview-table">
+                {state.data.length > 0 && (
+                  <div className="table-preview-area">
+                    <div className="preview-header">
+                      <span>Resultados: <strong>{state.total}</strong></span>
+                    </div>
+                    <div className="scroll-wrapper">
+                      <table className="modern-table">
                         <thead>
                           {reporte.id === 'usuarios' && (
-                            <tr>
-                              <th>Nombre</th>
-                              <th>Cédula</th>
-                              <th>Correo</th>
-                            </tr>
+                            <tr><th>Nombre</th><th>Cédula</th><th>Email</th></tr>
                           )}
                           {reporte.id === 'solicitudes' && (
-                            <tr>
-                              <th>Cliente</th>
-                              <th>Origen</th>
-                              <th>Destino</th>
-                              <th>Estado</th>
-                            </tr>
+                            <tr><th>Cliente</th><th>Origen</th><th>Destino</th><th>Estado</th></tr>
                           )}
                           {reporte.id === 'vehiculos' && (
-                            <tr>
-                              <th>Placa</th>
-                              <th>Vehículo</th>
-                              <th>Transportista</th>
-                              <th>Estado</th>
-                            </tr>
+                            <tr><th>Placa</th><th>Modelo</th><th>Transportista</th></tr>
                           )}
                         </thead>
                         <tbody>
-                          {prev.data.slice(0, 5).map((item, idx) => {
-                            if (reporte.id === 'usuarios') {
-                              return (
-                                <tr key={idx}>
-                                  <td>{item.nombre}</td>
+                          {state.data.slice(0, 5).map((item, idx) => (
+                            <tr key={idx}>
+                              {reporte.id === 'usuarios' && (
+                                <>
+                                  <td>{item.first_name} {item.last_name}</td>
                                   <td>{item.cedula}</td>
                                   <td>{item.email}</td>
-                                </tr>
-                              );
-                            }
-                            if (reporte.id === 'solicitudes') {
-                              return (
-                                <tr key={idx}>
-                                  <td>{item.cliente}</td>
+                                </>
+                              )}
+                              {reporte.id === 'solicitudes' && (
+                                <>
+                                  <td>{item.cliente_nombre || 'N/A'}</td>
                                   <td>{item.origen}</td>
                                   <td>{item.destino}</td>
-                                  <td>{item.estado}</td>
-                                </tr>
-                              );
-                            }
-                            if (reporte.id === 'vehiculos') {
-                              return (
-                                <tr key={idx}>
+                                  <td><span className={`status-tag ${item.estado}`}>{item.estado}</span></td>
+                                </>
+                              )}
+                              {reporte.id === 'vehiculos' && (
+                                <>
                                   <td>{item.placa}</td>
                                   <td>{item.vehiculo}</td>
                                   <td>{item.transportista}</td>
-                                  <td>{item.estado}</td>
-                                </tr>
-                              );
-                            }
-                            return null;
-                          })}
+                                </>
+                              )}
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
-                    )}
-                  </>
+                    </div>
+                    {state.total > 5 && <p className="footer-note">Mostrando 5 de {state.total} registros totales.</p>}
+                  </div>
                 )}
               </div>
             </div>

@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+
 from .views import (
     CrearSolicitudServicioView,
     ListaSolicitudesClienteView,
@@ -8,6 +9,7 @@ from .views import (
     SolicitudDetailView,
     AsignarTurnoIAView, 
     CrearTurnoDesdeSolicitudView, 
+    MisAsignacionesView,
 )
 
 urlpatterns = [
@@ -19,6 +21,9 @@ urlpatterns = [
 
     # Nuevo endpoint para la IA de n8n:
     path('asignar-turno/', AsignarTurnoIAView.as_view(), name='asignar-turno-ia'),
+    
     path('solicitudes/crear-turno/', CrearTurnoDesdeSolicitudView.as_view(), name='crear-turno-desde-solicitud'),
+
+    path('mis-asignaciones/', MisAsignacionesView.as_view(), name='mis-asignaciones'),
 ]
 

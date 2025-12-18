@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_filters',
     'gestion_vehiculos',
     'gestion_transporte',
+    'gestion_finanzas',
     'reportes',
     'django_extensions',
 ]

@@ -23,6 +23,7 @@ export default function DashboardAdmin() {
             <li><Link to="/dashboard-admin/usuarios" className={location.pathname.includes("usuarios") ? "active" : ""}>Usuarios</Link></li>
             <li><Link to="/dashboard-admin/solicitudes" className={location.pathname.includes("solicitudes") ? "active" : ""}>Solicitudes</Link></li>
             <li><Link to="/dashboard-admin/vehiculos" className={location.pathname.includes("vehiculos") ? "active" : ""}>Vehículos</Link></li>
+            <li><Link to="/dashboard-admin/finanzas" className={location.pathname.includes("finanzas") ? "active" : ""}>Finanzas</Link></li>
             <li><Link to="/dashboard-admin/reportes" className={location.pathname.includes("reportes") ? "active" : ""}>Reportes</Link></li>
           </ul>
         </nav>

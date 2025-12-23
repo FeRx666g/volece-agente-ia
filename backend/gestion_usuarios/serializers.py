@@ -14,6 +14,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'email',
             'rol',
             'cedula_ruc',
+            'telefono', 
             'password'
         ]
         extra_kwargs = {
@@ -27,7 +28,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         current_user_rol = getattr(request.user, 'rol', None) if request and request.user.is_authenticated else None
 
-        # Determinar el rol final según quién crea
         rol_final = rol_recibido if current_user_rol == 'ADMIN' else 'CLIENTE'
         
         validated_data.pop('rol', None)
@@ -38,8 +38,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         user.save()
         return user
     
-# Clase para la edición de usuarios del administrador
 class UsuarioEdicionAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['first_name', 'last_name', 'rol', 'cedula_ruc']
+        fields = ['first_name', 'last_name', 'rol', 'cedula_ruc', 'telefono']

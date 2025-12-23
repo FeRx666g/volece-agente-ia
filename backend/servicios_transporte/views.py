@@ -53,7 +53,7 @@ class SolicitudDetailView(generics.RetrieveUpdateAPIView):
 
 N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
 N8N_WEBHOOK_WHATSAPP = "http://localhost:5678/webhook/notificacion-transportista"
-
+ 
 class AsignarTurnoIAView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser] 

@@ -1,5 +1,5 @@
 {
-  "name": "volece-agenteia",
+  "name": "My workflow",
   "nodes": [
     {
       "parameters": {
@@ -11,24 +11,24 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        32,
+        96
       ],
-      "id": "550efc95-58f9-42f0-98b6-6ec275e605ea",
+      "id": "e08b4a4b-f7e7-49ea-858c-0a3709be2da8",
       "name": "Webhook",
       "webhookId": "0e3518f2-f483-46a8-a810-0eee1bc77d21"
     },
     {
       "parameters": {
-        "jsCode": "\nlet content = null;\n\nif (items[0]?.json?.message?.content) {\n  content = items[0].json.message.content;\n} else if (items[0]?.json?.content) {\n  content = items[0].json.content;\n}\n\nif (typeof content !== 'string') {\n  throw new Error('No se encontró el contenido de OpenAI como string');\n}\n\ncontent = content.trim();\n\nif (content.startsWith('```')) {\n  content = content.replace(/^```[a-zA-Z]*\\s*/,'');\n  content = content.replace(/```$/,'');            \n  content = content.trim();\n}\n\ncontent = content.replace(/,\\s*([\\]}])/g, '$1');\n\nlet data;\ntry {\n  data = JSON.parse(content);\n} catch (e) {\n  throw new Error('No se pudo parsear la respuesta de OpenAI: ' + e.message + '\\nContenido:\\n' + content);\n}\n\nlet mejor = data.mejor_transportista || null;\nlet comentarioGlobal = data.comentario_ia || null;\nlet listaCompleta = Array.isArray(data.lista_completa)\n  ? data.lista_completa\n  : [];\n\nlistaCompleta = listaCompleta\n  .map((t) => ({\n    transportista_id: Number(t.transportista_id),\n    transportista_nombre: t.transportista_nombre,\n    vehiculo_tipo: t.vehiculo_tipo,\n    vehiculo_tonelaje: Number(t.vehiculo_tonelaje),\n    probabilidad: Number(t.probabilidad),\n    comentario_ia: t.comentario_ia,\n  }))\n  .sort((a, b) => (b.probabilidad || 0) - (a.probabilidad || 0));\n\nif (!mejor && listaCompleta.length > 0) {\n  mejor = {\n    transportista_id: listaCompleta[0].transportista_id,\n    transportista_nombre: listaCompleta[0].transportista_nombre,\n    probabilidad: listaCompleta[0].probabilidad,\n  };\n}\n\nreturn [\n  {\n    json: {\n      mejor_transportista: mejor,\n      comentario_ia: comentarioGlobal,\n      lista_completa: listaCompleta,\n    },\n  },\n];\n"
+        "jsCode": "let content = null;\n\nif (items[0]?.json?.message?.content) {\n  content = items[0].json.message.content;\n} else if (items[0]?.json?.content) {\n  content = items[0].json.content;\n}\n\nif (typeof content !== 'string') {\n  throw new Error('No se encontró el contenido de OpenAI como string');\n}\n\ncontent = content.trim();\n\nif (content.startsWith('```')) {\n  content = content.replace(/^```[a-zA-Z]*\\s*/,'');\n  content = content.replace(/```$/,'');            \n  content = content.trim();\n}\n\ncontent = content.replace(/,\\s*([\\]}])/g, '$1');\n\nlet data;\ntry {\n  data = JSON.parse(content);\n} catch (e) {\n  throw new Error('No se pudo parsear la respuesta de OpenAI: ' + e.message + '\\nContenido:\\n' + content);\n}\n\nlet mejor = data.mejor_transportista || null;\nlet comentarioGlobal = data.comentario_ia || null;\nlet listaCompleta = Array.isArray(data.lista_completa)\n  ? data.lista_completa\n  : [];\n\nlistaCompleta = listaCompleta\n  .map((t) => ({\n    transportista_id: Number(t.transportista_id),\n    transportista_nombre: t.transportista_nombre,\n    vehiculo_id: t.vehiculo_id ? Number(t.vehiculo_id) : null,\n    vehiculo_placa: t.vehiculo_placa || '',\n    vehiculo_modelo: t.vehiculo_modelo || '',\n    vehiculo_tipo: t.vehiculo_tipo,\n    vehiculo_tonelaje: Number(t.vehiculo_tonelaje),\n    probabilidad: Number(t.probabilidad),\n    comentario_ia: t.comentario_ia,\n  }))\n  .sort((a, b) => (b.probabilidad || 0) - (a.probabilidad || 0));\n\nif (mejor) {\n    mejor.vehiculo_id = mejor.vehiculo_id ? Number(mejor.vehiculo_id) : null;\n}\n\nif (!mejor && listaCompleta.length > 0) {\n  mejor = {\n    transportista_id: listaCompleta[0].transportista_id,\n    transportista_nombre: listaCompleta[0].transportista_nombre,\n    vehiculo_id: listaCompleta[0].vehiculo_id, // Pasamos el ID del vehículo\n    probabilidad: listaCompleta[0].probabilidad,\n  };\n}\n\nreturn [\n  {\n    json: {\n      mejor_transportista: mejor,\n      comentario_ia: comentarioGlobal,\n      lista_completa: listaCompleta,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1264,
-        0
+        1296,
+        96
       ],
-      "id": "5f348667-88b5-4e06-8c02-bf0bc1c04b12",
+      "id": "07aeecfe-4ce7-42f2-9921-098dad882ca2",
       "name": "Code"
     },
     {
@@ -40,16 +40,16 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        208,
-        0
+        240,
+        96
       ],
-      "id": "1f4ff312-4a60-419f-aec2-8c1c1dce2001",
+      "id": "21ca451c-f57b-4c5e-9668-d7060c147e96",
       "name": "Execute a SQL query",
       "alwaysOutputData": true,
       "credentials": {
         "postgres": {
-          "id": "N9NzMBFMvp23rYVr",
-          "name": "Postgres account 2"
+          "id": "YZkZS0KDqAsNU6fG",
+          "name": "Postgres account"
         }
       }
     },
@@ -60,10 +60,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        768,
-        0
+        800,
+        96
       ],
-      "id": "3abb4673-2c89-42c0-86cd-6e251d53d8a7",
+      "id": "49361208-7de3-48ed-bb7f-632bd2ae3ba8",
       "name": "Code1"
     },
     {
@@ -75,11 +75,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -32,
-        -96
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "32310b8d-1166-4c1e-af3c-1e0f58d77217",
+      "id": "6bc503c8-4a5d-49a2-8643-00260806cf03",
       "name": "Sticky Note"
     },
     {
@@ -91,11 +91,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        160,
-        -96
+        192,
+        0
       ],
       "typeVersion": 1,
-      "id": "5e94c003-c1ef-479b-8014-8d8101a9ad9a",
+      "id": "9d9251e5-08b0-47cd-a754-07d03b66eb8e",
       "name": "Sticky Note1"
     },
     {
@@ -107,16 +107,16 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        496,
-        0
+        528,
+        96
       ],
-      "id": "93ad0d19-6b84-4c01-8778-e2b71d012906",
+      "id": "8b872133-5eca-4d53-a76c-b1bf1b64bfc5",
       "name": "Execute a SQL query1",
       "executeOnce": true,
       "credentials": {
         "postgres": {
-          "id": "N9NzMBFMvp23rYVr",
-          "name": "Postgres account 2"
+          "id": "YZkZS0KDqAsNU6fG",
+          "name": "Postgres account"
         }
       }
     },
@@ -129,11 +129,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        384,
-        -96
+        416,
+        0
       ],
       "typeVersion": 1,
-      "id": "51783dd9-0b6e-4b1b-8808-31a2716098a7",
+      "id": "df080490-0c72-4712-bc42-e9dbc4f46b39",
       "name": "Sticky Note2"
     },
     {
@@ -145,11 +145,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        704,
-        -96
+        736,
+        0
       ],
       "typeVersion": 1,
-      "id": "ee9a6fe6-c524-4696-913c-17091784d2db",
+      "id": "074eb293-afdc-44f3-a1d0-8cd55b8012d0",
       "name": "Sticky Note3"
     },
     {
@@ -161,11 +161,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        944,
-        -96
+        976,
+        0
       ],
       "typeVersion": 1,
-      "id": "49f8abc8-961e-4248-b80a-e634c78e8436",
+      "id": "c6a8fdb4-755a-4c53-8571-38bdd54f0196",
       "name": "Sticky Note4"
     },
     {
@@ -179,7 +179,7 @@
         "messages": {
           "values": [
             {
-              "content": "Eres un asistente experto en logística y gestión de flotas de transporte. Tu redacción debe ser profesional, clara, concisa y con buena ortografía.\n\nRecibirás un JSON con dos secciones:\n1. \"solicitud\": contiene id_solicitud, origen, destino, tipo_carga, fecha_solicitud y \"tipo_vehiculo\" (este último es el vehículo PREFERIDO por el cliente).\n2. \"candidatos\": lista REAL de transportistas disponibles con sus vehículos, capacidades y fechas ocupadas.\n\nREGLAS ESTRICTAS DE EVALUACIÓN:\n\n1. NO inventes datos. Usa solo la información provista.\n2. Evalúa a cada candidato basándote en estos criterios ponderados:\n\n   A) Compatibilidad del Vehículo (40%):\n      - Si el \"vehiculo_tipo\" del candidato COINCIDE con el \"tipo_vehiculo\" solicitado por el cliente, otorga la máxima puntuación en este apartado.\n      - Si NO coincide, evalúa técnicamente si el vehículo es capaz de llevar la \"tipo_carga\".\n\n   B) Disponibilidad en la Fecha (CRÍTICO - 35%):\n      - Revisa la \"fecha_solicitud\".\n      - Compara esa fecha EXCLUSIVAMENTE con las fechas exactas en la lista \"fechas_ocupado\" del candidato.\n      - REGLA DE ORO: Si la \"fecha_solicitud\" NO aparece textualmente en \"fechas_ocupado\", el vehículo está 100% DISPONIBLE.\n      - PROHIBIDO penalizar, asumir retrasos o inferir indisponibilidad basándose en fechas anteriores o posteriores (ej. \"ayer estuvo ocupado\"). Los viajes son independientes; solo importa el día exacto solicitado.\n\n   C) Capacidad y Balanceo (25%):\n      - El \"vehiculo_tonelaje\" debe ser suficiente.\n      - Prioriza a quienes tengan menos \"viajes_semana\".\n\n3. Cálculo de Probabilidades:\n   - Normaliza las puntuaciones para obtener una probabilidad entre 0.00 y 1.00.\n   - La suma de todas las probabilidades debe ser EXACTAMENTE 1.00.\n\nREGLAS DE REDACCIÓN Y COMENTARIOS:\n\n- \"comentario_ia\": Sé sincero y directo.\n- Si el vehículo recomendado NO es el que el cliente pidió, explica: \"El cliente solicitó [Vehículo pedido], pero...\" y justifica técnicamente.\n- Si el vehículo coincide, confírmalo: \"Coincide con el vehículo solicitado y tiene disponibilidad confirmada.\"\n- NUNCA menciones \"posible indisponibilidad\" por viajes en días previos. Si la fecha no está en la lista de ocupados, está libre.\n\nFORMATO DE RESPUESTA JSON (NO MODIFICAR ESTRUCTURA):\n\n{\n  \"mejor_transportista\": {\n    \"transportista_id\": <number>,\n    \"transportista_nombre\": \"<string nombre + apellido>\",\n    \"probabilidad\": <number>\n  },\n  \"comentario_ia\": \"<Resumen general>\",\n  \"lista_completa\": [\n    {\n      \"transportista_id\": <number>,\n      \"transportista_nombre\": \"<string nombre + apellido>\",\n      \"vehiculo_tipo\": \"<string>\",\n      \"vehiculo_tonelaje\": <number>,\n      \"probabilidad\": <number>,\n      \"comentario_ia\": \"<Explicación específica>\"\n    }\n  ]\n}",
+              "content": "Eres un asistente experto en logística y gestión de flotas de transporte. Tu redacción debe ser profesional, clara, concisa y con buena ortografía.\n\nRecibirás un JSON con dos secciones:\n1. \"solicitud\": contiene id_solicitud, origen, destino, tipo_carga, fecha_solicitud y \"tipo_vehiculo\" (este último es el vehículo PREFERIDO por el cliente).\n2. \"candidatos\": lista REAL de transportistas disponibles con sus vehículos, capacidades y fechas ocupadas.\n\nREGLAS ESTRICTAS DE EVALUACIÓN:\n\n1. NO inventes datos. Usa solo la información provista.\n2. Evalúa a cada candidato basándote en estos criterios ponderados:\n\n   A) Compatibilidad del Vehículo (40%):\n      - Si el \"vehiculo_tipo\" del candidato COINCIDE con el \"tipo_vehiculo\" solicitado por el cliente, otorga la máxima puntuación en este apartado.\n      - Si NO coincide, evalúa técnicamente si el vehículo es capaz de llevar la \"tipo_carga\".\n\n   B) Disponibilidad en la Fecha (CRÍTICO - 35%):\n      - Revisa la \"fecha_solicitud\".\n      - Compara esa fecha EXCLUSIVAMENTE con las fechas exactas en la lista \"fechas_ocupado\" del candidato.\n      - REGLA DE ORO: Si la \"fecha_solicitud\" NO aparece textualmente en \"fechas_ocupado\", el vehículo está 100% DISPONIBLE.\n      - PROHIBIDO penalizar, asumir retrasos o inferir indisponibilidad basándose en fechas anteriores o posteriores (ej. \"ayer estuvo ocupado\"). Los viajes son independientes; solo importa el día exacto solicitado.\n\n   C) Capacidad y Balanceo (25%):\n      - El \"vehiculo_tonelaje\" debe ser suficiente.\n      - Prioriza a quienes tengan menos \"viajes_semana\".\n\n3. Cálculo de Probabilidades:\n   - Normaliza las puntuaciones para obtener una probabilidad entre 0.00 y 1.00.\n   - La suma de todas las probabilidades debe ser EXACTAMENTE 1.00.\n\nREGLAS DE REDACCIÓN Y COMENTARIOS:\n\n- \"comentario_ia\": Sé sincero y directo.\n- Si el vehículo recomendado NO es el que el cliente pidió, explica: \"El cliente solicitó [Vehículo pedido], pero...\" y justifica técnicamente.\n- Si el vehículo coincide, confírmalo: \"Coincide con el vehículo solicitado y tiene disponibilidad confirmada.\"\n- NUNCA menciones \"posible indisponibilidad\" por viajes en días previos. Si la fecha no está en la lista de ocupados, está libre.\n\nFORMATO DE RESPUESTA JSON (NO MODIFICAR ESTRUCTURA):\n\n{\n  \"mejor_transportista\": {\n    \"transportista_id\": <number>,\n\"vehiculo_id\": <number>,\n    \"transportista_nombre\": \"<string nombre + apellido>\",\n    \"probabilidad\": <number>\n  },\n  \"comentario_ia\": \"<Resumen general>\",\n  \"lista_completa\": [\n    {\n      \"transportista_id\": <number>,\n\"vehiculo_id\": <number>,\n\n      \"transportista_nombre\": \"<string nombre + apellido>\",\n\"vehiculo_placa\": \"<string>\",\n      \"vehiculo_tipo\": \"<string>\",\n      \"vehiculo_tonelaje\": <number>,\n      \"probabilidad\": <number>,\n      \"comentario_ia\": \"<Explicación específica>\"\n    }\n  ]\n}",
               "role": "system"
             },
             {
@@ -192,14 +192,14 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        960,
-        0
+        992,
+        96
       ],
-      "id": "29d0a7af-763a-4ff4-b63a-a4f3ed9f9ca2",
+      "id": "3a5161a5-402d-40ba-8f32-8bb408fc0fb8",
       "name": "Message a model",
       "credentials": {
         "openAiApi": {
-          "id": "szIBUg5i40nXN9Ea",
+          "id": "qNvlmfAYjJAFRZNX",
           "name": "OpenAi account"
         }
       }
@@ -213,11 +213,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1216,
-        -96
+        1248,
+        0
       ],
       "typeVersion": 1,
-      "id": "e10e5d05-5230-4944-b4d1-0783465ba9b8",
+      "id": "2d3a3e06-fa75-487c-ab97-f8f1caccaddd",
       "name": "Sticky Note5"
     }
   ],
@@ -283,11 +283,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "55e89147-6112-44b2-ae95-e791714df080",
+  "versionId": "7facb1c5-5fcc-4092-a8bc-91e6f704072c",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "564b2b9adc1e6b5a4441336470d55c7ce3a4e45764da5a926e0c11e894426a76"
+    "instanceId": "2f98ed89d022fa1d8f90046f81a645256130dd131c12216bf67a9faa1fe9f709"
   },
-  "id": "i3rj6E2VbrKOm5aH",
+  "id": "6o6y4g4CVXGDngWk",
   "tags": []
 }

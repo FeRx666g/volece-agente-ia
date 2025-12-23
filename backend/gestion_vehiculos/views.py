@@ -57,13 +57,25 @@ class MantenimientoTransportistaView(APIView):
         except Vehiculo.MultipleObjectsReturned:
             return Response({'error': 'Múltiples vehículos encontrados, especifique uno'}, status=400)
 
+        # --- CORRECCIÓN FECHA Y ACTUALIZACIÓN KM ---
+        fecha = request.data.get('fecha_mantenimiento')
+        km_ingresado = int(request.data.get('kilometraje_actual'))
+
+        # Crear el registro de mantenimiento
         Mantenimiento.objects.create(
             vehiculo=vehiculo,
             tipo=request.data.get('tipo'),
-            kilometraje_actual=request.data.get('kilometraje_actual'),
+            kilometraje_actual=km_ingresado,
             kilometraje_proximo=request.data.get('kilometraje_proximo'),
-            observaciones=request.data.get('observaciones')
+            observaciones=request.data.get('observaciones'),
+            fecha_mantenimiento=fecha  # Guardamos la fecha enviada
         )
+
+        # Actualizar el kilometraje del vehículo si el nuevo es mayor
+        if km_ingresado > vehiculo.kilometraje_actual:
+            vehiculo.kilometraje_actual = km_ingresado
+            vehiculo.save()
+
         return Response({'mensaje': 'Mantenimiento registrado exitosamente'})
 
 class AlertasMantenimientoView(APIView):
@@ -82,7 +94,6 @@ class AlertasMantenimientoView(APIView):
             for vehiculo in vehiculos:
                 mantenimientos = Mantenimiento.objects.filter(vehiculo=vehiculo).order_by('-fecha_mantenimiento')
                 
-                # Agrupamos por tipo para tomar solo el último de cada tipo
                 tipos_vistos = set()
                 
                 for mantenimiento in mantenimientos:

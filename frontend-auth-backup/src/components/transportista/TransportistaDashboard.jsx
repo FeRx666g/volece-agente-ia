@@ -202,6 +202,7 @@ export default function TransportistaDashboard() {
                       <tr>
                         <th>ID</th>
                         <th>Fecha</th>
+                        <th>Vehículo</th>
                         <th>Ruta (Origen - Destino)</th>
                         <th>Carga</th>
                         <th>Cliente</th>
@@ -210,12 +211,21 @@ export default function TransportistaDashboard() {
                     </thead>
                     <tbody>
                       {asignaciones.length === 0 ? (
-                        <tr><td colSpan="6" className="vlc-tra-empty">No hay viajes registrados</td></tr>
+                        <tr><td colSpan="7" className="vlc-tra-empty">No hay viajes registrados</td></tr>
                       ) : (
                         asignaciones.map((turno) => (
                           <tr key={turno.id}>
                             <td>#{turno.id}</td>
                             <td>{turno.fecha_turno}</td>
+                            
+                            <td style={{fontWeight: 'bold', color: '#279200'}}>
+                                {turno.vehiculo_data ? (
+                                    <span>{turno.vehiculo_data.placa}</span>
+                                ) : (
+                                    <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Sin Asignar</span>
+                                )}
+                            </td>
+
                             <td>
                               <div className="vlc-tra-route">
                                 {turno.solicitud_data?.origen} <span className="vlc-tra-arrow">→</span> {turno.solicitud_data?.destino}

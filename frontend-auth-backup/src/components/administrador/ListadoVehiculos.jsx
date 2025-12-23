@@ -264,7 +264,7 @@ export default function ListadoVehiculos() {
                                 {previewFoto ? (
                                     <img src={previewFoto} alt="Preview" />
                                 ) : editData.fotoActual ? (
-                                    <img src={`http://localhost:8000${editData.fotoActual}`} alt="Actual" />
+                                    <img src={`${editData.fotoActual}`} alt="Actual" />
                                 ) : (
                                     <div className="vlc-no-photo">Sin Foto</div>
                                 )}

@@ -56,7 +56,7 @@ const AdminSolicitudes = () => {
             return {
               ...solicitud,
               predicciones: [],
-              selectedUniqueId: null, // CAMBIO: Usamos un ID único en lugar de solo transportista_id
+              selectedUniqueId: null,
             };
           }
 
@@ -81,32 +81,28 @@ const AdminSolicitudes = () => {
 
           let predicciones = [];
 
-          // CAMBIO: Lógica para construir predicciones con datos de VEHÍCULO y generar id_unico
           if (listaCompletaN8N && listaCompletaN8N.length > 0) {
             const ordenada = [...listaCompletaN8N].sort(
               (a, b) => (b.probabilidad || 0) - (a.probabilidad || 0)
             );
 
             predicciones = ordenada.map((t, index) => {
-                // Generamos un ID único combinando transportista y vehículo (o indice si falla)
-                // Asegúrate que n8n devuelve 'vehiculo_id'. Si no, usa el index como fallback.
+                // Generamos ID único: IDTransportista + IDVehiculo + Indice
                 const vId = t.vehiculo_id || 'sin_vehiculo'; 
                 const uniqueId = `${t.transportista_id}_${vId}_${index}`; 
 
                 return {
-                  id_unico: uniqueId, // <--- CLAVE ÚNICA PARA EL SELECT
+                  id_unico: uniqueId, 
                   transportista_id: t.transportista_id,
                   transportista_nombre: t.transportista_nombre,
-                  // Capturamos datos del vehículo si vienen de n8n
                   vehiculo_id: t.vehiculo_id || null, 
-                  vehiculo_info: t.vehiculo_placa ? `${t.vehiculo_placa} (${t.vehiculo_modelo || 'N/A'})` : 'Vehículo no especificado',
+                  vehiculo_info: t.vehiculo_placa ? `${t.vehiculo_placa}` : 'Vehículo no especificado',
                   probabilidad: t.probabilidad ?? null,
                   comentario: t.comentario_ia || 'Comentario no disponible',
                   esIA: mejor && t.transportista_id === mejor.transportista_id && t.vehiculo_id === mejor.vehiculo_id,
                 };
             });
           } else if (mejor) {
-             // Caso solo 'mejor' (fallback simple)
              const uniqueId = `${mejor.transportista_id}_${mejor.vehiculo_id || 'best'}_0`;
              predicciones = [
               {
@@ -119,7 +115,6 @@ const AdminSolicitudes = () => {
                 comentario: 'Recomendación de IA.',
                 esIA: true,
               },
-              // Agregamos el resto de transportistas (sin info de vehículo específica, genéricos)
               ...transportistas
                 .filter((t) => t.id !== mejor.transportista_id)
                 .map((t, idx) => ({
@@ -134,7 +129,6 @@ const AdminSolicitudes = () => {
                 })),
             ];
           } else {
-            // Caso sin IA, lista plana
             predicciones = transportistas.map((t, idx) => ({
               id_unico: `${t.id}_manual_${idx}`,
               transportista_id: t.id,
@@ -147,13 +141,12 @@ const AdminSolicitudes = () => {
             }));
           }
 
-          // Seleccionamos por defecto el primero (la mejor predicción)
           const selectedUniqueId = predicciones.length > 0 ? predicciones[0].id_unico : null;
 
           return {
             ...solicitud,
             predicciones,
-            selectedUniqueId, // CAMBIO: Guardamos el ID único en el estado
+            selectedUniqueId,
           };
         })
       );
@@ -178,22 +171,22 @@ const AdminSolicitudes = () => {
       const solicitud = solicitudes.find((s) => s.id === id);
       if (!solicitud) throw new Error('Solicitud no encontrada');
 
-      // CAMBIO: Recuperamos la predicción completa usando el ID Único seleccionado
+      // 1. Buscamos la predicción exacta usando el ID único seleccionado
       let prediccionSeleccionada = null;
       if (solicitud.selectedUniqueId && solicitud.predicciones) {
           prediccionSeleccionada = solicitud.predicciones.find(p => p.id_unico === solicitud.selectedUniqueId);
       }
 
-      // Datos para enviar
+      // 2. Extraemos los datos para enviar al backend
       let transportistaId = prediccionSeleccionada?.transportista_id || solicitud.transportista_asignado_id;
-      let vehiculoId = prediccionSeleccionada?.vehiculo_id || null; // <--- Importante: enviar el vehículo
+      let vehiculoId = prediccionSeleccionada?.vehiculo_id || null; // <--- AQUÍ SE ENVÍA EL VEHÍCULO CORRECTO
       let comentarioIA = prediccionSeleccionada?.comentario || null;
 
       if (['asignado', 'rechazado'].includes(nuevoEstado)) {
         const payloadTurno = {
           solicitud_id: id,
           transportista_id: transportistaId,
-          vehiculo_id: vehiculoId, // <--- Enviamos el vehículo al backend
+          vehiculo_id: vehiculoId, 
           nuevo_estado: nuevoEstado,
           ...(nuevoEstado === 'asignado' && { comentario_ia: comentarioIA }),
         };
@@ -243,7 +236,7 @@ const AdminSolicitudes = () => {
               <th>Detalles</th>
               <th>Fecha</th>
               <th>Estado</th>
-              <th>Asignación (Socio - Unidad)</th> {/* Título actualizado */}
+              <th>Asignación (Socio - Unidad)</th>
               <th>Comentario IA</th>
               <th>Acciones</th>
             </tr>
@@ -255,7 +248,6 @@ const AdminSolicitudes = () => {
               solicitudes.map((s) => {
                 const esAsignado = s.estado === 'asignado';
                 
-                // Buscar la opción seleccionada usando el ID único
                 const opcionSeleccionada = s.predicciones?.find(
                   (p) => p.id_unico === s.selectedUniqueId
                 );
@@ -286,16 +278,24 @@ const AdminSolicitudes = () => {
                       </span>
                     </td>
                     
-                    {/* COLUMNA DEL SELECTOR CORREGIDA */}
+                    {/* --- COLUMNA DE ASIGNACIÓN --- */}
                     <td className="vlc-sol-col-select">
                       {esAsignado && s.transportista_asignado_nombre ? (
-                        <span className="vlc-sol-assigned-name">
-                          {s.transportista_asignado_nombre}
-                        </span>
+                        <div className="vlc-sol-assigned-info" style={{display: 'flex', flexDirection: 'column'}}>
+                            <span className="vlc-sol-assigned-name" style={{fontWeight: '700', color: '#1e293b'}}>
+                                {s.transportista_asignado_nombre}
+                            </span>
+                            {/* Muestra la placa si está disponible */}
+                            {s.vehiculo_asignado_placa && (
+                                <span className="vlc-sol-assigned-plate" style={{fontSize: '0.8rem', color: '#279200', fontWeight: '600'}}>
+                                    Unidad: {s.vehiculo_asignado_placa}
+                                </span>
+                            )}
+                        </div>
                       ) : s.predicciones && s.predicciones.length > 0 ? (
                         <select
                           className="vlc-sol-select"
-                          value={s.selectedUniqueId || ''} // Usamos id_unico
+                          value={s.selectedUniqueId || ''}
                           onChange={(e) => {
                             const nuevoUniqueId = e.target.value;
                             const nuevasSolicitudes = solicitudes.map((sol) => {
@@ -308,7 +308,6 @@ const AdminSolicitudes = () => {
                           {s.predicciones.map((pred) => {
                             const tieneProb = typeof pred.probabilidad === 'number';
                             const porcentaje = tieneProb ? ` (${Math.round(pred.probabilidad * 100)}%)` : '';
-                            // Mostramos Nombre + Vehículo para diferenciar
                             return (
                               <option key={pred.id_unico} value={pred.id_unico}>
                                 {pred.transportista_nombre} - {pred.vehiculo_info} {porcentaje}

@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import Vehiculo, Mantenimiento
 from gestion_usuarios.models import Usuario
 
-
 class TransportistaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
@@ -10,7 +9,7 @@ class TransportistaSerializer(serializers.ModelSerializer):
 
 class VehiculoSerializer(serializers.ModelSerializer):
     transportista = serializers.PrimaryKeyRelatedField(
-        queryset=Usuario.objects.filter(rol='TRANSP'),
+        queryset=Usuario.objects.all(),
         write_only=True
     )
 
@@ -25,7 +24,7 @@ class VehiculoTransportistaSerializer(serializers.ModelSerializer):
         model = Vehiculo
         fields = [
             'id', 'tipo', 'marca', 'modelo', 'placa', 'anio',
-            'color','kilometraje_actual', 'tonelaje', 'combustible', 'estado', 
+            'color', 'kilometraje_actual', 'tonelaje', 'combustible', 'estado', 
             'foto',
         ]
 
@@ -33,5 +32,3 @@ class MantenimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mantenimiento
         fields = ['id', 'vehiculo', 'tipo', 'kilometraje_actual', 'kilometraje_proximo', 'fecha_mantenimiento', 'observaciones']
-        read_only_fields = ['fecha_mantenimiento']
-

@@ -1,16 +1,15 @@
 from datetime import datetime
-
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from django.utils.timezone import now
 from xhtml2pdf import pisa
-from django.db.models import Sum
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from gestion_finanzas.models import Finanza
-
 from gestion_transporte.models import Usuario, SolicitudServicio, Vehiculo
+from gestion_vehiculos.models import Mantenimiento
 
-# ---------- PREVIEW USUARIOS ----------
 def reporte_usuarios_preview(request):
     search = request.GET.get('search')
     fecha_desde = request.GET.get('fecha_desde')
@@ -53,8 +52,6 @@ def reporte_usuarios_preview(request):
 
     return JsonResponse({"total": total, "data": data})
 
-
-# ---------- PREVIEW SOLICITUDES ----------
 def reporte_solicitudes_preview(request):
     search = request.GET.get('search')
     fecha_desde = request.GET.get('fecha_desde')
@@ -103,8 +100,6 @@ def reporte_solicitudes_preview(request):
 
     return JsonResponse({"total": total, "data": data})
 
-
-# ---------- PREVIEW VEHÍCULOS ----------
 def reporte_vehiculos_preview(request):
     search = request.GET.get('search')
     fecha_desde = request.GET.get('fecha_desde')
@@ -153,12 +148,6 @@ def reporte_vehiculos_preview(request):
 
     return JsonResponse({"total": total, "data": data})
 
-
-# =========================================================
-# REPORTES PDF
-# =========================================================
-
-# ---------- PDF USUARIOS ----------
 def reporte_usuarios_pdf(request):
     template = get_template('reportes/usuarios_pdf.html')
 
@@ -203,8 +192,6 @@ def reporte_usuarios_pdf(request):
         return HttpResponse('Error generando PDF', status=500)
     return response
 
-
-# ---------- PDF SOLICITUDES ----------
 def reporte_solicitudes_pdf(request):
     template = get_template('reportes/solicitudes_pdf.html')
 
@@ -254,8 +241,6 @@ def reporte_solicitudes_pdf(request):
         return HttpResponse('Error generando PDF', status=500)
     return response
 
-
-# ---------- PDF VEHÍCULOS ----------
 def reporte_vehiculos_pdf(request):
     template = get_template('reportes/vehiculos_pdf.html')
 
@@ -305,9 +290,6 @@ def reporte_vehiculos_pdf(request):
         return HttpResponse('Error generando PDF', status=500)
     return response
 
-# =========================================================
-# REPORTE PDF FINANZAS
-# =========================================================
 def reporte_finanzas_pdf(request):
     template = get_template('reportes/finanzas_pdf.html')
 
@@ -353,4 +335,55 @@ def reporte_finanzas_pdf(request):
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
         return HttpResponse('Error generando PDF', status=500)
+    return response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def reporte_mantenimientos_pdf(request):
+    try:
+        template = get_template('reportes/mantenimientos_pdf.html')
+    except Exception:
+        return HttpResponse("Error: Plantilla no encontrada", status=500)
+    
+    transportista = request.user
+    
+    f_inicio = request.GET.get('fecha_inicio', '').strip()
+    f_fin = request.GET.get('fecha_fin', '').strip()
+
+    vehiculos = Vehiculo.objects.filter(transportista=transportista)
+    qs = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento')
+
+    if f_inicio:
+        try:
+            fecha_d = datetime.strptime(f_inicio, "%Y-%m-%d").date()
+            qs = qs.filter(fecha_mantenimiento__gte=fecha_d)
+        except ValueError:
+            pass
+
+    if f_fin:
+        try:
+            fecha_h = datetime.strptime(f_fin, "%Y-%m-%d").date()
+            qs = qs.filter(fecha_mantenimiento__lte=fecha_h)
+        except ValueError:
+            pass
+
+    context = {
+        'transportista': transportista,
+        'mantenimientos': qs,
+        'fecha': now().strftime('%d/%m/%Y'),
+        'filtros': {
+            'desde': f_inicio if f_inicio else "Inicio",
+            'hasta': f_fin if f_fin else "Actualidad"
+        }
+    }
+
+    html = template.render(context)
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"Mantenimientos_{f_inicio or 'G'}_{f_fin or 'G'}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generando PDF', status=500)
+    
     return response

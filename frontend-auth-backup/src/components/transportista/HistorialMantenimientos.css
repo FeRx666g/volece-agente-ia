@@ -126,3 +126,158 @@
     padding: 1rem;
   }
 }
+
+/* ... Tus variables y estilos previos ... */
+
+/* Modificamos el header para usar Flexbox y separar título del botón */
+.vlc-hmn-header {
+  padding: 1.5rem 2rem;
+  background-color: #fafbfc;
+  border-bottom: 2px solid var(--vlc-hmn-border);
+  display: flex; /* Nuevo */
+  justify-content: space-between; /* Nuevo */
+  align-items: center; /* Nuevo */
+  flex-wrap: wrap; /* Para móviles */
+  gap: 1rem;
+}
+
+.vlc-hmn-header-info h2 {
+  color: var(--vlc-hmn-text);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+
+.vlc-hmn-header-info p {
+  color: var(--vlc-hmn-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Estilos del Botón PDF */
+.vlc-hmn-btn-pdf {
+  background-color: #dc2626; /* Color rojo PDF */
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.vlc-hmn-btn-pdf:hover {
+  background-color: #b91c1c;
+  transform: translateY(-2px);
+}
+
+.vlc-hmn-btn-pdf:active {
+  transform: translateY(0);
+}
+
+/* Ajuste Mobile */
+@media (max-width: 768px) {
+  .vlc-hmn-header {
+    flex-direction: column;
+    text-align: center;
+    align-items: stretch;
+  }
+  
+  .vlc-hmn-btn-pdf {
+    justify-content: center;
+  }
+}
+
+/* ... Tus estilos anteriores ... */
+
+.vlc-hmn-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.vlc-hmn-date-group {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: #f8fafc;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.vlc-date-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.vlc-date-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.vlc-hmn-date-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.85rem;
+    color: #334155;
+    outline: none;
+    background-color: white;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.vlc-hmn-date-input:focus {
+    border-color: #279200;
+}
+
+.vlc-hmn-btn-pdf {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.vlc-hmn-btn-pdf:hover {
+    background-color: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* Ajuste responsive para móviles */
+@media (max-width: 768px) {
+    .vlc-hmn-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    .vlc-hmn-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .vlc-hmn-date-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .vlc-hmn-btn-pdf {
+        width: 100%;
+        justify-content: center;
+    }
+}

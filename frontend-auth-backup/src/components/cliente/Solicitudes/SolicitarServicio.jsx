@@ -11,6 +11,9 @@ const SolicitarServicio = ({ onClose }) => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  const fechaActual = new Date();
+  const hoy = new Date(fechaActual.getTime() - (fechaActual.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
@@ -25,7 +28,11 @@ const SolicitarServicio = ({ onClose }) => {
       await crearSolicitud(data, localStorage.getItem('authToken'));
       setSuccessMessage("Solicitud enviada correctamente. Nuestro equipo la revisará pronto.");
       setError(null);
-      setOrigen(''); setDestino(''); setTipoVehiculo(''); setTipoCarga(''); setFechaSolicitud('');
+      setOrigen(''); 
+      setDestino(''); 
+      setTipoVehiculo(''); 
+      setTipoCarga(''); 
+      setFechaSolicitud('');
     } catch (err) {
       setError("Hubo un problema al procesar la solicitud. Intente nuevamente.");
       setSuccessMessage(null);
@@ -87,6 +94,7 @@ const SolicitarServicio = ({ onClose }) => {
                 value={fechaSolicitud}
                 onChange={(e) => setFechaSolicitud(e.target.value)}
                 required
+                min={hoy}
               />
             </div>
 

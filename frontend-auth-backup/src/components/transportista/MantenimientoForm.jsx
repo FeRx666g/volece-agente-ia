@@ -3,15 +3,16 @@ import axios from 'axios';
 import './MantenimientoForm.css';
 
 export default function MantenimientoForm({ onMantenimientoRegistrado }) {
-  // Estado para la lista de vehículos
   const [vehiculos, setVehiculos] = useState([]);
   
   const [tipo, setTipo] = useState('CAMBIO_ACEITE');
   const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [kilometrajeProximo, setKilometrajeProximo] = useState('');
   const [observaciones, setObservaciones] = useState('');
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  
   const [loading, setLoading] = useState(false);
-  const [kmBase, setKmBase] = useState(null);
+  const [kmBase, setKmBase] = useState(0); 
   const [vehiculoId, setVehiculoId] = useState('');
 
   const tiposMantenimiento = [
@@ -31,37 +32,31 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
     obtenerVehiculos();
   }, []);
 
+  useEffect(() => {
+    if (vehiculoId && vehiculos.length > 0) {
+        const vehiculo = vehiculos.find(v => v.id == vehiculoId);
+        if (vehiculo) {
+            setKmBase(vehiculo.kilometraje_actual);
+            setKilometrajeActual(vehiculo.kilometraje_actual);
+        }
+    }
+  }, [vehiculoId, vehiculos]);
+
   const obtenerVehiculos = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Manejamos si la respuesta es un array o un objeto paginado
       const lista = Array.isArray(response.data) ? response.data : [response.data];
       setVehiculos(lista);
 
-      // Seleccionar automáticamente el primero si existe
       if (lista.length > 0) {
-        seleccionarVehiculo(lista[0].id, lista);
+        setVehiculoId(lista[0].id);
       }
     } catch (error) {
       console.error(error);
     }
-  };
-
-  // Función para manejar el cambio de vehículo y actualizar km base
-  const seleccionarVehiculo = (id, listaOrigen = vehiculos) => {
-    const vehiculoSeleccionado = listaOrigen.find(v => v.id == id);
-    if (vehiculoSeleccionado) {
-      setVehiculoId(id);
-      setKmBase(vehiculoSeleccionado.kilometraje_actual);
-      setKilometrajeActual(vehiculoSeleccionado.kilometraje_actual);
-    }
-  };
-
-  const handleVehiculoChange = (e) => {
-    seleccionarVehiculo(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -74,9 +69,9 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
         return;
     }
 
-    if (kmBase !== null && kmActual < kmBase) {
-      alert(`El Kilometraje Actual no puede ser menor al registrado: ${kmBase} km`);
-      return;
+    if (kmActual < kmBase) {
+      const confirmar = window.confirm(`El kilometraje ingresado (${kmActual}) es menor al actual del sistema (${kmBase}). ¿Es una corrección?`);
+      if (!confirmar) return;
     }
 
     if (kmProximo <= kmActual) {
@@ -92,19 +87,26 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
           tipo,
           kilometraje_actual: kmActual,
           kilometraje_proximo: kmProximo,
+          fecha_mantenimiento: fecha, 
           observaciones,
           vehiculo: vehiculoId
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       alert('Mantenimiento registrado exitosamente.');
+      
       setTipo('CAMBIO_ACEITE');
+      setKilometrajeActual('');
       setKilometrajeProximo('');
       setObservaciones('');
-      // Refrescamos los vehículos para actualizar el kilometraje base localmente
+      setFecha(new Date().toISOString().split('T')[0]);
+      
       obtenerVehiculos(); 
+      
       if (onMantenimientoRegistrado) onMantenimientoRegistrado();
     } catch (error) {
+      console.error(error);
       alert('Error al registrar mantenimiento.');
     }
     setLoading(false);
@@ -115,15 +117,18 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
       <form className="vlc-mnt-form" onSubmit={handleSubmit}>
         <div className="vlc-mnt-header">
           <h2>Registrar Mantenimiento</h2>
-          <p>Ingrese los datos técnicos del servicio realizado a la unidad.</p>
+          <p>Ingrese los datos técnicos del servicio.</p>
         </div>
 
         <div className="vlc-mnt-body">
           
-          {/* NUEVO CAMPO DE SELECCIÓN DE VEHÍCULO */}
           <div className="vlc-mnt-field">
             <label>Seleccionar Unidad</label>
-            <select value={vehiculoId} onChange={handleVehiculoChange} required>
+            <select 
+                value={vehiculoId} 
+                onChange={(e) => setVehiculoId(e.target.value)} 
+                required
+            >
               {vehiculos.map(v => (
                 <option key={v.id} value={v.id}>
                   {v.placa} - {v.modelo}
@@ -132,13 +137,25 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
             </select>
           </div>
 
-          <div className="vlc-mnt-field">
-            <label>Tipo de Mantenimiento</label>
-            <select value={tipo} onChange={e => setTipo(e.target.value)}>
-              {tiposMantenimiento.map(op => (
-                <option key={op.value} value={op.value}>{op.label}</option>
-              ))}
-            </select>
+          <div className="vlc-mnt-grid">
+            <div className="vlc-mnt-field">
+                <label>Tipo de Servicio</label>
+                <select value={tipo} onChange={e => setTipo(e.target.value)}>
+                {tiposMantenimiento.map(op => (
+                    <option key={op.value} value={op.value}>{op.label}</option>
+                ))}
+                </select>
+            </div>
+
+            <div className="vlc-mnt-field">
+                <label>Fecha del Servicio</label>
+                <input 
+                    type="date" 
+                    value={fecha} 
+                    onChange={e => setFecha(e.target.value)} 
+                    required 
+                />
+            </div>
           </div>
 
           <div className="vlc-mnt-grid">
@@ -149,13 +166,15 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
                 value={kilometrajeActual}
                 onChange={e => setKilometrajeActual(e.target.value)}
                 required
-                min={kmBase || 0}
+                placeholder="Ingrese nuevo KM"
               />
-              <small style={{color: '#64748b', fontSize: '0.8rem'}}>Registrado: {kmBase} km</small>
+              <small style={{ color: '#64748b', marginTop: '4px', display: 'block', fontSize: '0.8rem' }}>
+                 Último registrado: <strong>{kmBase.toLocaleString()} km</strong>
+              </small>
             </div>
 
             <div className="vlc-mnt-field">
-              <label>Kilometraje Próximo</label>
+              <label>Próximo Mantenimiento (km)</label>
               <input
                 type="number"
                 value={kilometrajeProximo}
@@ -167,16 +186,17 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
           </div>
 
           <div className="vlc-mnt-field">
-            <label>Observaciones Adicionales</label>
+            <label>Observaciones</label>
             <textarea
               value={observaciones}
               onChange={e => setObservaciones(e.target.value)}
-              placeholder="Detalle el trabajo realizado..."
+              placeholder="Detalles del servicio..."
+              rows="2"
             />
           </div>
 
           <button type="submit" className="vlc-mnt-submit" disabled={loading}>
-            {loading ? 'Procesando...' : 'Guardar Registro'}
+            {loading ? 'Guardando...' : 'Guardar Registro'}
           </button>
         </div>
       </form>

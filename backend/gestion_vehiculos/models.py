@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 class Vehiculo(models.Model):
     TIPO_CHOICES = [
@@ -71,9 +72,8 @@ class Mantenimiento(models.Model):
     )
     kilometraje_actual = models.PositiveIntegerField()
     kilometraje_proximo = models.PositiveIntegerField(default=0)
-    fecha_mantenimiento = models.DateField(auto_now_add=True)
+    fecha_mantenimiento = models.DateField(default=timezone.now)
     observaciones = models.TextField(blank=True, null=True)
-  
 
     def __str__(self):
         return f"{self.vehiculo.placa} - {self.tipo} ({self.fecha_mantenimiento})"

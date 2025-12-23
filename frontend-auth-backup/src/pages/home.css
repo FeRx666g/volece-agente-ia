@@ -1,490 +1,351 @@
-/* home.css */
-.home-container {
-  font-family: 'Arial', sans-serif;
+:root {
+  --vlc-primary: #279200;
+  --vlc-primary-dark: #1e7300;
+  --vlc-text-dark: #1e293b;
+  --vlc-text-light: #64748b;
+  --vlc-bg-alt: #f8fafc;
+  --vlc-white: #ffffff;
+  --vlc-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  --vlc-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vlc-home-master {
+  overflow-x: hidden;
+  background-color: var(--vlc-white);
+}
+
+.vlc-home-content-width {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 0 20px;
 }
 
-/* Banner */
-.banner {
-  background-image: url('../img/banner.jpg');
-  background-size: cover;
-  background-position: center;
-  color: white;
-  text-align: center;
-  padding: 100px 20px;
-  position: relative;
-  background-attachment: fixed;
-  transition: background 0.3s ease-in-out;
+.vlc-home-section {
+  padding: 80px 0;
+  animation: vlcFadeUp 0.8s ease-out both;
 }
 
-.hybrid-banner {
-  position: relative;
-  background: url('../img/banner.jpg') no-repeat center center;
+.vlc-home-bg-alt {
+  background-color: var(--vlc-bg-alt);
+}
+
+.vlc-home-title {
+  text-align: center;
+  font-size: 2.2rem;
+  color: var(--vlc-text-dark);
+  margin-bottom: 3rem;
+  font-weight: 800;
+}
+
+.vlc-home-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.vlc-home-card {
+  background: var(--vlc-white);
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: var(--vlc-shadow);
+  transition: var(--vlc-transition);
+  border: 1px solid #f1f5f9;
+}
+
+.vlc-home-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 30px -10px rgba(39, 146, 0, 0.2);
+}
+
+.vlc-home-card-icon {
+  font-size: 3rem;
+  color: var(--vlc-primary);
+  margin-bottom: 1.5rem;
+}
+
+.vlc-home-card h3 {
+  color: var(--vlc-text-dark);
+  margin-bottom: 1rem;
+}
+
+.vlc-home-card p {
+  color: var(--vlc-text-light);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.vlc-home-banner {
+  height: 60vh;
+  background: url('../img/banner.jpg') no-repeat center center fixed;
   background-size: cover;
-  min-height: 80vh;
+  position: relative;
+}
+
+.vlc-home-banner-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  color: white;
 }
 
-.banner-overlay {
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 3rem;
-  border-radius: 12px;
-  color: #fff;
-  max-width: 700px;
-  animation: zoomIn 1.5s ease-in-out;
+.vlc-home-banner-text {
+  max-width: 800px;
+  padding: 0 20px;
 }
 
-@keyframes zoomIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.banner-text h1, .banner-text p {
-  animation: fadeIn 2s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.banner-text h1 {
+.vlc-home-banner-text h1 {
   font-size: 3rem;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-.banner-text p {
-  font-size: 1.5rem;
-}
-
-/* Secciones generales */
-.about-us, .services, .advantages, .cta {
-  padding: 60px 20px;
-  text-align: center;
-}
-
-/* Cards de servicios */
-.service-cards {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 30px;
-  gap: 20px;
-}
-
-.card {
-  background: #f9f9f9;
-  border-radius: 8px;
-  width: 280px;
-  margin: 15px;
-  padding: 20px;
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-  text-align: center;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-}
-
-.card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0px 12px 20px rgba(0,0,0,0.2);
-}
-
-.service-icon {
-  font-size: 4rem;
-  color: #4CAF50;
-  margin-bottom: 15px;
-}
-
-/* Ventajas */
-.advantages ul {
-  list-style-type: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.advantages li {
-  background: #f1f1f1;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  animation: fadeInUp 1s ease forwards;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.advantages li:before {
-  content: "✓";
-  color: #4CAF50;
-  margin-right: 10px;
-  font-size: 1.5rem;
-}
-
-/* Estadísticas */
-.stats {
-  display: flex;
-  justify-content: space-around;
-  background: #4CAF50;
+.vlc-home-btn-cta {
+  display: inline-block;
+  background: var(--vlc-primary);
   color: white;
-  padding: 40px 20px;
-  text-align: center;
-}
-.stat h3 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-.stat p {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-/* CTA final */
-.cta-final {
-  background-color: #4CAF50;
-  color: white;
-  padding: 60px 20px;
-  text-align: center;
-  border-radius: 12px;
-  margin-top: 40px;
-}
-
-.cta-button {
-  margin-top: 20px;
-  background: white;
-  color: #4CAF50;
-  padding: 12px 24px;
-  border-radius: 5px;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
   text-decoration: none;
-  font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: background 0.3s, color 0.3s, transform 0.3s;
+  font-weight: 700;
+  transition: var(--vlc-transition);
+  border: none;
+  cursor: pointer;
 }
 
-.cta-button:hover {
-  background: #45a049;
-  color: white;
+.vlc-home-btn-cta:hover {
+  background: var(--vlc-primary-dark);
   transform: scale(1.05);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .stats {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .banner-text h1 {
-    font-size: 2rem;
-  }
-
-  .banner-text p {
-    font-size: 1rem;
-  }
-
-  .cta-button {
-    padding: 10px 20px;
-  }
-
-  .card {
-    width: 90%;
-    margin: 10px 0;
-  }
-
-  .advantages ul {
-    grid-template-columns: 1fr;
-  }
+.vlc-home-btn-cta-outline {
+  display: inline-block;
+  background: transparent;
+  color: var(--vlc-white);
+  border: 2px solid var(--vlc-white);
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: var(--vlc-transition);
+  cursor: pointer;
+  margin-top: 2rem;
 }
 
-/* MODAL de contacto */
-body.modal-open {
-  overflow: hidden;
+.vlc-home-btn-cta-outline:hover {
+  background: var(--vlc-white);
+  color: var(--vlc-primary);
+  transform: scale(1.05);
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.95);
-  display: flex;
+.vlc-home-dual-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 4rem;
   align-items: center;
-  justify-content: center;
-  z-index: 999999; 
 }
 
-
-.modal-content {
-
-  background-color: #fff !important;
-  color: #000 !important;
-  z-index: 1000000 !important;
-  padding: 30px;
-  border-radius: 10px;
-  max-width: 500px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-}
-
-.modal-content h2 {
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-  color: #4CAF50;
-}
-
-.modal-content ul {
+.vlc-home-list {
   list-style: none;
   padding: 0;
 }
 
-.close-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background: #4CAF50;
+.vlc-home-list li {
+  padding: 12px 0 12px 35px;
+  position: relative;
+  font-size: 1.1rem;
+  color: var(--vlc-text-dark);
+}
+
+.vlc-home-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--vlc-primary);
+  font-weight: 900;
+  font-size: 1.3rem;
+}
+
+.vlc-home-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.vlc-home-stat-box {
+  background: var(--vlc-primary);
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.close-button:hover {
-  background: #45a049;
-}
-
-/* Redes Sociales en el modal */
-.social-icons {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.social-icons a {
-  color: #4CAF50;
-  font-size: 1.5rem;
-  transition: transform 0.3s, color 0.3s;
-}
-
-.social-icons a:hover {
-  color: #388E3C;
-  transform: scale(1.2);
-}
-
-/* Animación del modal */
-@keyframes fadeInModal {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Animación general para secciones */
-section {
-  animation: fadeInSection 1s ease both;
-}
-
-@keyframes fadeInSection {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-
-/*Video*/
-.video-section {
-  padding: 60px 20px;
+  padding: 2rem;
+  border-radius: 16px;
   text-align: center;
-  background: #f4f4f4;
 }
 
-.video-section h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #333;
-}
+.vlc-home-stat-box h3 { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
-.video-container {
-  aspect-ratio: 16 / 9;        
-  max-width: 960px;
-  width: 100%;
+.vlc-home-video-wrapper {
+  max-width: 1000px;
   margin: 0 auto;
+  height: 450px; 
+  border-radius: 20px;
   overflow: hidden;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  background: black;          /* Para evitar bordes blancos si hay márgenes */
+  box-shadow: var(--vlc-shadow);
+  background: #000;
+  border: 4px solid var(--vlc-white);
 }
 
-.video-container video {
+.vlc-home-video-wrapper video {
   width: 100%;
   height: 100%;
-  object-fit: cover;          
+  object-fit: cover; 
   display: block;
 }
 
-/*MAPA*/
-.map-section {
-  padding: 60px 20px;
-  background-color: #eef2f3;
-  text-align: center;
-}
-
-.map-section h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.map-container {
-  max-width: 960px;
+.vlc-home-map-frame {
+  max-width: 1000px;
   margin: 0 auto;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--vlc-shadow);
+  background: #000;
 }
 
-
-/* Botón flotante de WhatsApp */
-.whatsapp-float {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 1.8rem;
+.vlc-home-cta-final {
+  background-color: var(--vlc-primary);
   color: white;
-  background: #25D366;
-  padding: 12px 14px;
-  border-radius: 50%;
-  z-index: 10000;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
+  padding: 60px 20px;
+  text-align: center;
+  border-radius: 20px;
+  margin: 40px auto;
+  max-width: 1200px;
 }
 
-.whatsapp-float:hover {
-  background: #1ebe5d;
-  transform: scale(1.1);
+.vlc-home-cta-final h2, .vlc-home-cta-final p {
+  color: var(--vlc-white);
 }
 
-/* Botón de volver arriba */
-.scroll-to-top {
+.vlc-home-modal-overlay {
   position: fixed;
-  bottom: 90px; /* Más arriba que el WhatsApp */
-  right: 20px;
-  z-index: 9999;
-  background: #4CAF50;
-  color: white;
-  font-size: 1.5rem;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: background 0.3s, transform 0.2s ease-in-out;
-}
-
-.scroll-to-top:hover {
-  background: #388E3C;
-  transform: scale(1.1);
-}
-
-
-
-/*estilos modales nav nosotros*/
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-in-out;
+  z-index: 2000;
 }
 
-.modal-content {
-  background: #ffffff;
-  padding: 2.5rem 2rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
+.vlc-home-modal-card {
+  background: var(--vlc-white);
   width: 90%;
-  position: relative;
+  max-width: 600px;
+  padding: 3rem;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  animation: vlcZoomIn 0.3s ease-out;
   text-align: center;
-  animation: slideUp 0.3s ease-out;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.modal-content h2 {
-  margin-bottom: 1rem;
-  font-size: 2rem;
-  color: #2c3e50;
-  border-bottom: 2px solid #3498db;
-  display: inline-block;
-  padding-bottom: 5px;
-}
-
-.modal-content p {
-  font-size: 1.1rem;
-  color: #34495e;
-  line-height: 1.6;
+.vlc-home-modal-card h2 {
+  color: var(--vlc-primary);
   margin-bottom: 1.5rem;
+  font-size: 2rem;
 }
 
-.modal-content button {
-  background-color: #388E3C;
+.vlc-home-contact-info p {
+  font-size: 1.1rem;
+  color: var(--vlc-text-dark);
+  margin-bottom: 1rem;
+}
+
+.vlc-home-phones {
+  margin: 1.5rem 0;
+}
+
+.vlc-home-socials {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.vlc-home-socials a {
+  color: var(--vlc-primary);
+  font-size: 2rem;
+  transition: var(--vlc-transition);
+}
+
+.vlc-home-socials a:hover {
+  color: var(--vlc-primary-dark);
+  transform: translateY(-3px);
+}
+
+.vlc-home-btn-primary {
+  background: var(--vlc-primary);
   color: white;
+  padding: 0.8rem 2rem;
+  border-radius: 12px;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: var(--vlc-transition);
 }
 
-.modal-content button:hover {
-  background-color: #26843a;
+.vlc-home-btn-primary:hover {
+  background: var(--vlc-primary-dark);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+.vlc-home-float-wa {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: #25d366;
+  color: white;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  z-index: 1500;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: var(--vlc-transition);
 }
 
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
+.vlc-home-scroll-top {
+  position: fixed;
+  bottom: 95px; right: 20px;
+  background: var(--vlc-primary);
+  color: white;
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1500;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: var(--vlc-transition);
+}
+
+.vlc-home-scroll-top:hover {
+  background: var(--vlc-primary-dark);
+  transform: scale(1.1);
+}
+
+@keyframes vlcFadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vlcZoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .vlc-home-dual-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .vlc-home-banner-text h1 { font-size: 2rem; }
+  .vlc-home-video-wrapper { height: 250px; }
 }

@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import VehiculoViewSet, VehiculoTransportistaView,VehiculoEstadoUpdateView, MantenimientoTransportistaView
 from .views import AlertasMantenimientoView, ActualizarKilometrajeView
 
+
 # Router para el ADMIN
 router = DefaultRouter()
 router.register(r'', VehiculoViewSet, basename='vehiculos')

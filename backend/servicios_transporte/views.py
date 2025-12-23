@@ -10,16 +10,13 @@ from django.shortcuts import get_object_or_404
 import requests
 
 from .models import SolicitudServicio
-from .serializers import SolicitudServicioSerializer
+from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer
 
 from django.utils import timezone
 
 from gestion_transporte.models import DatasetTurnosIA
 from gestion_vehiculos.models import Vehiculo
 from gestion_usuarios.models import Usuario
-
-from .models import SolicitudServicio
-from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer
 
 
 class CrearSolicitudServicioView(generics.CreateAPIView):
@@ -55,7 +52,6 @@ class SolicitudDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAdminUser]
 
 N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
-
 N8N_WEBHOOK_WHATSAPP = "http://localhost:5678/webhook/notificacion-transportista"
 
 class AsignarTurnoIAView(APIView):
@@ -113,6 +109,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
 
         solicitud_id = request.data.get('solicitud_id')
         transportista_id = request.data.get('transportista_id')
+        vehiculo_id = request.data.get('vehiculo_id') # <--- NUEVO: RECIBIMOS EL ID DEL VEHÍCULO
         nuevo_estado = request.data.get('nuevo_estado')
         comentario_ia = request.data.get('comentario_ia')
 
@@ -143,7 +140,21 @@ class CrearTurnoDesdeSolicitudView(APIView):
 
         turno = DatasetTurnosIA.objects.filter(solicitud=solicitud).first()
 
-        if turno is None or turno.transportista_id != int(transportista_id):
+        # --- LÓGICA DE SELECCIÓN DE VEHÍCULO CORREGIDA ---
+        vehiculo = None
+        
+        # 1. Si nos envían un ID específico, lo buscamos directamente
+        if vehiculo_id:
+            vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
+            # Opcional: Validar que pertenezca al transportista
+            if vehiculo.transportista_id != int(transportista_id):
+                 return Response(
+                    {"detail": "El vehículo seleccionado no pertenece al transportista."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # 2. Si NO hay ID (fallback), buscamos el primero activo del transportista
+        elif turno is None or turno.transportista_id != int(transportista_id):
             vehiculo = Vehiculo.objects.filter(
                 transportista_id=transportista_id,
                 estado='ACTIVO'
@@ -155,7 +166,9 @@ class CrearTurnoDesdeSolicitudView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         else:
+            # Si ya existía un turno y es el mismo transportista, mantenemos el vehículo anterior
             vehiculo = turno.vehiculo
+        # ---------------------------------------------------
 
         solicitud.estado = nuevo_estado
         solicitud.save()
@@ -207,7 +220,6 @@ class CrearTurnoDesdeSolicitudView(APIView):
                 "fecha_servicio": solicitud.fecha_solicitud.strftime('%Y-%m-%d')
             }
 
-            
             try:
                 requests.post(N8N_WEBHOOK_WHATSAPP, json=payload_whatsapp, timeout=3)
             except requests.exceptions.RequestException as e:

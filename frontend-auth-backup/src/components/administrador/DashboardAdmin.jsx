@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { FaSignOutAlt } from 'react-icons/fa';
-import './DashboardAdmin.css';
+import { 
+  FaSignOutAlt, FaHome, FaUsers, FaFileAlt, 
+  FaTruck, FaMoneyBillWave, FaChartBar 
+} from 'react-icons/fa';
+import './estilos/DashboardAdmin.css';
 
 export default function DashboardAdmin() {
   const navigate = useNavigate();
@@ -12,42 +15,59 @@ export default function DashboardAdmin() {
     navigate('/login');
   };
 
+  const menuItems = [
+    { path: '/dashboard-admin', label: 'Inicio', icon: <FaHome /> },
+    { path: '/dashboard-admin/usuarios', label: 'Usuarios', icon: <FaUsers /> },
+    { path: '/dashboard-admin/solicitudes', label: 'Solicitudes', icon: <FaFileAlt /> },
+    { path: '/dashboard-admin/vehiculos', label: 'Vehículos', icon: <FaTruck /> },
+    { path: '/dashboard-admin/finanzas', label: 'Finanzas', icon: <FaMoneyBillWave /> },
+    { path: '/dashboard-admin/reportes', label: 'Reportes', icon: <FaChartBar /> },
+  ];
+
   return (
-    <div className="dashboard-layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2>Administración</h2>
-        <nav className="sidebar-menu">
-          <ul>
-            <li><Link to="/dashboard-admin" className={location.pathname === "/dashboard-admin" ? "active" : ""}>Inicio</Link></li>
-            <li><Link to="/dashboard-admin/usuarios" className={location.pathname.includes("usuarios") ? "active" : ""}>Usuarios</Link></li>
-            <li><Link to="/dashboard-admin/solicitudes" className={location.pathname.includes("solicitudes") ? "active" : ""}>Solicitudes</Link></li>
-            <li><Link to="/dashboard-admin/vehiculos" className={location.pathname.includes("vehiculos") ? "active" : ""}>Vehículos</Link></li>
-            <li><Link to="/dashboard-admin/finanzas" className={location.pathname.includes("finanzas") ? "active" : ""}>Finanzas</Link></li>
-            <li><Link to="/dashboard-admin/reportes" className={location.pathname.includes("reportes") ? "active" : ""}>Reportes</Link></li>
+    <div className="vlc-admin-layout">
+      <aside className="vlc-sidebar-container">
+        <div className="vlc-sidebar-header">
+          <span className="vlc-brand-main">VOLECE</span>
+          <span className="vlc-brand-sub">ADMINISTRACIÓN</span>
+        </div>
+
+        <nav className="vlc-sidebar-nav">
+          <ul className="vlc-nav-menu">
+            {menuItems.map((item) => (
+              <li key={item.path}>
+                <Link 
+                  to={item.path} 
+                  className={location.pathname === item.path ? "vlc-link-item vlc-active" : "vlc-link-item"}
+                >
+                  <span className="vlc-link-icon">{item.icon}</span>
+                  <span className="vlc-link-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        <div className="logout-container">
-          <button onClick={handleLogout} className="btn-logout">
-            <FaSignOutAlt /> Cerrar Sesión
+        <div className="vlc-sidebar-footer">
+          <button onClick={handleLogout} className="vlc-logout-btn">
+            <FaSignOutAlt /> <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="main-content">
-        <header className="dashboard-header">
-          <h1>Compañía Volquetas El Cedral VOLECE.C.A.</h1>
+      <main className="vlc-main-viewport">
+        <header className="vlc-main-header">
+          <h1>Compañía Volquetas El Cedral <span className="vlc-accent-text">VOLECE.C.A.</span></h1>
         </header>
 
-        {/* AQUÍ ES IMPORTANTE: envolver el Outlet */}
-        <div className="dashboard-content-admin">
-          <Outlet />
+        <div className="vlc-content-container">
+          <div className="vlc-view-card">
+            <Outlet />
+          </div>
         </div>
 
-        <footer className="dashboard-footer">
-          <p>&copy; 2025 VOLECE C.A. Todos los derechos reservados.</p>
+        <footer className="vlc-main-footer">
+          <p>&copy; 2025 VOLECE C.A. — Gestión de Transporte Pesado</p>
         </footer>
       </main>
     </div>

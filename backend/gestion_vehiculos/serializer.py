@@ -3,7 +3,6 @@ from .models import Vehiculo, Mantenimiento
 from gestion_usuarios.models import Usuario
 
 
-
 class TransportistaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
@@ -27,6 +26,7 @@ class VehiculoTransportistaSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'tipo', 'marca', 'modelo', 'placa', 'anio',
             'color','kilometraje_actual', 'tonelaje', 'combustible', 'estado', 
+            'foto',
         ]
 
 class MantenimientoSerializer(serializers.ModelSerializer):

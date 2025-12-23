@@ -1,6 +1,6 @@
 import React from 'react';
-import './TiposDeCargas.css';
 import { useNavigate } from 'react-router-dom';
+import './TiposDeCargas.css';
 
 import arenaImg from '../img/arena-fina.jpg';
 import gravaImg from '../img/grava.jpeg';
@@ -12,6 +12,8 @@ import lastreImg from '../img/laztre.jpeg';
 import hormigonImg from '../img/hormigon.jpeg';
 
 export default function TiposDeCargas() {
+  const navigate = useNavigate();
+
   const cargas = [
     {
       nombre: 'Arena',
@@ -34,45 +36,47 @@ export default function TiposDeCargas() {
       descripcion: 'Polvo fino que al mezclarse con agua se convierte en una pasta que endurece, usado en toda obra civil.',
     },
     {
-    nombre: 'Material de Relleno',
-    imagen: rellenoImg,
-    descripcion: 'Material no estructural utilizado para nivelar terrenos y cubrir zanjas.',
+      nombre: 'Material de Relleno',
+      imagen: rellenoImg,
+      descripcion: 'Material no estructural utilizado para nivelar terrenos y cubrir zanjas.',
     },
     {
-        nombre: 'Tierra Negra',
-        imagen: tierraImg,
-        descripcion: 'Tierra fértil usada para jardinería y cultivos en pequeños proyectos.',
+      nombre: 'Tierra Negra',
+      imagen: tierraImg,
+      descripcion: 'Tierra fértil usada para jardinería y cultivos en pequeños proyectos.',
     },
     {
-        nombre: 'Lastre',
-        imagen: lastreImg,
-        descripcion: 'Combinación de arena, grava y piedras, ideal para rellenos y bases compactadas en carreteras.',
+      nombre: 'Lastre',
+      imagen: lastreImg,
+      descripcion: 'Combinación de arena, grava y piedras, ideal para rellenos y bases compactadas en carreteras.',
     },
     {
-        nombre: 'Hormigón Premezclado',
-        imagen: hormigonImg,
-        descripcion: 'Mezcla de cemento, arena, grava y agua, lista para usar en estructuras de concreto armado.',
+      nombre: 'Hormigón Premezclado',
+      imagen: hormigonImg,
+      descripcion: 'Mezcla de cemento, arena, grava y agua, lista para usar en estructuras de concreto armado.',
     },
   ];
 
-    const navigate = useNavigate();
-    const handleBack = () => {
-    navigate('/inicio'); 
-    };
-
   return (
-    <div className="cargas-container">
-        <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-            <button className="back-button" onClick={handleBack}>← Volver</button>
-        </div>
+    <div className="vlc-cgs-container">
+      <div className="vlc-cgs-header">
+        <button className="vlc-cgs-back-btn" onClick={() => navigate('/inicio')}>
+          ← Volver al Inicio
+        </button>
+      </div>
 
-      <h1>TIPOS DE CARGAS QUE PUEDES SOLICITAR</h1>
-      <div className="cargas-grid">
+      <h1 className="vlc-cgs-main-title">TIPOS DE CARGAS QUE PUEDES SOLICITAR</h1>
+
+      <div className="vlc-cgs-grid">
         {cargas.map((carga, index) => (
-          <div className="carga-card" key={index}>
-            <img src={carga.imagen} alt={carga.nombre} />
-            <h3>{carga.nombre}</h3>
-            <p>{carga.descripcion}</p>
+          <div className="vlc-cgs-card" key={index}>
+            <div className="vlc-cgs-img-wrapper">
+              <img src={carga.imagen} alt={carga.nombre} className="vlc-cgs-img" />
+            </div>
+            <div className="vlc-cgs-info">
+              <h3 className="vlc-cgs-name">{carga.nombre}</h3>
+              <p className="vlc-cgs-desc">{carga.descripcion}</p>
+            </div>
           </div>
         ))}
       </div>

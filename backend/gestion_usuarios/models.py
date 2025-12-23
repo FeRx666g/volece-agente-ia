@@ -58,7 +58,7 @@ class Usuario(AbstractUser):
 
     objects = UsuarioManager()
 
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'cedula_ruc', 'email']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'cedula_ruc', 'email', 'telefono']
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.get_rol_display()})"

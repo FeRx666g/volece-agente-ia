@@ -1,132 +1,152 @@
-/* Fondo semioscuro que ocupa toda la pantalla */
-.form-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(16, 40, 20, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
+:root {
+  --vlc-primary: #279200;
+  --vlc-primary-dark: #1e7300;
+  --vlc-border: #e2e8f0;
+  --vlc-text-dark: #1e293b;
+  --vlc-text-light: #64748b;
+  --vlc-white: #ffffff;
 }
 
-/* Formulario centrado con fondo más suave */
-.form-solicitar-servicio {
-  background: #1f3524;
-  padding: 25px 30px;
-  border-radius: var(--radius);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  width: 350px;
+.vlc-sol-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  animation: vlcFadeIn 0.4s ease-out;
+}
+
+.vlc-sol-form-card {
+  background: var(--vlc-white);
+  width: 100%;
+  max-width: 700px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--vlc-border);
+  overflow: hidden;
+}
+
+.vlc-sol-form-header {
+  padding: 2rem;
+  background-color: #fafbfc;
+  border-bottom: 1px solid var(--vlc-border);
+  text-align: center;
+}
+
+.vlc-sol-form-header h2 {
+  color: var(--vlc-text-dark);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.vlc-sol-form-header p {
+  color: var(--vlc-text-light);
+  font-size: 0.9rem;
+}
+
+.vlc-sol-form-body {
+  padding: 2rem;
+}
+
+.vlc-sol-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.vlc-sol-field {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: white;
-  font-family: "Poppins", sans-serif;
-  max-width: 100%;
-  box-sizing: border-box;
-  position: relative;
+  gap: 0.5rem;
 }
 
-/* Botón de cierre (X) */
-.btn-close-x {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 24px;
-  color: white;
-  background: none;
-  border: none;
-  cursor: pointer;
-  z-index: 10;
-  transition: color 0.2s ease, transform 0.2s ease;
+.vlc-sol-field.full {
+  grid-column: span 2;
 }
 
-.btn-close-x:hover {
-  color: var(--danger);
-  transform: scale(1.2);
-}
-
-/* Título */
-.form-solicitar-servicio h2 {
-  margin-bottom: 15px;
-  color: #a3d9a5;
+.vlc-sol-field label {
+  font-size: 0.85rem;
   font-weight: 700;
-  font-size: 20px;
-  text-align: center;
+  color: var(--vlc-text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Labels */
-.form-solicitar-servicio label {
-  font-weight: 600;
-  font-size: 13px;
-  margin-bottom: 4px;
-  text-align: center;
-}
-
-/* Inputs y Select - MODIFICADO */
-.form-solicitar-servicio input[type="text"],
-.form-solicitar-servicio input[type="date"],
-.form-solicitar-servicio select {
-  padding: 8px 10px;
-  border: 1.5px solid #88c99c;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+.vlc-sol-field input, 
+.vlc-sol-field select {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--vlc-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
   outline: none;
+  transition: border-color 0.2s;
+  background-color: #ffffff;
+  color: var(--vlc-text-dark);
+}
+
+.vlc-sol-field input:focus, 
+.vlc-sol-field select:focus {
+  border-color: var(--vlc-primary);
+}
+
+.vlc-sol-form-footer {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.vlc-sol-btn-submit {
+  flex: 2;
+  background-color: var(--vlc-primary);
   color: white;
-  background-color: #2a4432;
-  height: 38px; /* Ajustado ligeramente para que el select no se vea aplastado */
-  text-align: center;
-  transition: border-color 0.3s ease;
-  width: 100%; /* Asegura que ocupen el ancho disponible */
-  box-sizing: border-box;
-}
-
-/* Estilo para las opciones del select para que no salgan blancas */
-.form-solicitar-servicio select option {
-  background-color: #1f3524;
-  color: white;
-}
-
-.form-solicitar-servicio input[type="text"]:focus,
-.form-solicitar-servicio input[type="date"]:focus,
-.form-solicitar-servicio select:focus {
-  border-color: #a3d9a5;
-  box-shadow: 0 0 6px #a3d9a5;
-}
-
-/* Mensajes */
-.form-error {
-  color: var(--danger);
-  font-weight: 600;
-  font-size: 13px;
-  text-align: center;
-}
-
-.form-success {
-  color: #a5f5c4;
-  font-weight: 600;
-  font-size: 13px;
-  text-align: center;
-}
-
-/* Botón enviar */
-.btn-submit {
-  margin-top: 10px;
-  padding: 10px 0;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 1rem;
   border: none;
-  border-radius: var(--radius);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  background: linear-gradient(135deg, #3d8f58, #6cbf7e);
-  color: white;
-  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.35);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.3s;
 }
 
-.btn-submit:hover {
-  background: linear-gradient(135deg, #2e7d44, #56a86a);
-  box-shadow: 0 7px 25px rgba(76, 175, 80, 0.5);
+.vlc-sol-btn-submit:hover {
+  background-color: var(--vlc-primary-dark);
+}
+
+.vlc-sol-btn-cancel {
+  flex: 1;
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.vlc-sol-btn-cancel:hover {
+  background-color: #e2e8f0;
+}
+
+.vlc-sol-alert {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.vlc-sol-alert.error { background: #fee2e2; color: #991b1b; }
+.vlc-sol-alert.success { background: #dcfce7; color: #166534; }
+
+@keyframes vlcFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .vlc-sol-form-grid { grid-template-columns: 1fr; }
+  .vlc-sol-field.full { grid-column: span 1; }
+  .vlc-sol-form-footer { flex-direction: column; }
 }

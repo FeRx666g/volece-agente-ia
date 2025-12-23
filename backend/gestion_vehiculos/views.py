@@ -4,26 +4,22 @@ from rest_framework.response import Response
 from .models import Vehiculo, Mantenimiento
 from .serializer import VehiculoSerializer, VehiculoTransportistaSerializer, MantenimientoSerializer
 
-
-# Vista para el Admin
 class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
-# Vista para el Transportista
 class VehiculoTransportistaView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        try:
-            vehiculo = Vehiculo.objects.filter(transportista=request.user).first()
-            serializer = VehiculoTransportistaSerializer(vehiculo)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Vehiculo.DoesNotExist:
-            return Response({'error': 'No se encontró vehículo registrado'}, status=status.HTTP_404_NOT_FOUND)
+        vehiculos = Vehiculo.objects.filter(transportista=request.user)
 
+        if not vehiculos.exists():
+            return Response({'error': 'No se encontraron vehículos'}, status=status.HTTP_404_NOT_FOUND)
 
+        serializer = VehiculoTransportistaSerializer(vehiculos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class VehiculoEstadoUpdateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -36,16 +32,16 @@ class VehiculoEstadoUpdateView(APIView):
 
         try:
             vehiculo_id = request.data.get("vehiculo_id")
-            vehiculo = Vehiculo.objects.get(id=vehiculo_id,transportista=request.user)
+            vehiculo = Vehiculo.objects.get(id=vehiculo_id, transportista=request.user)
             vehiculo.estado = nuevo_estado
             vehiculo.save()
             return Response({'mensaje': f'Estado actualizado a {nuevo_estado}'}, status=status.HTTP_200_OK)
         except Vehiculo.DoesNotExist:
             return Response({'error': 'Vehículo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class MantenimientoTransportistaView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    
     def get(self, request):
         vehiculos = Vehiculo.objects.filter(transportista=request.user)
         mantenimientos = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento')
@@ -61,8 +57,7 @@ class MantenimientoTransportistaView(APIView):
         except Vehiculo.MultipleObjectsReturned:
             return Response({'error': 'Múltiples vehículos encontrados, especifique uno'}, status=400)
 
-        mantenimiento = Mantenimiento.objects.create(
-            
+        Mantenimiento.objects.create(
             vehiculo=vehiculo,
             tipo=request.data.get('tipo'),
             kilometraje_actual=request.data.get('kilometraje_actual'),
@@ -71,35 +66,45 @@ class MantenimientoTransportistaView(APIView):
         )
         return Response({'mensaje': 'Mantenimiento registrado exitosamente'})
 
-#vista para alertas de mantenimiento   
 class AlertasMantenimientoView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        margen_alerta = 500  # margen de anticipación (500 km)
+        margen_alerta = 500
         alertas = []
 
         try:
-            vehiculo = Vehiculo.objects.filter(transportista=request.user).first()
-            mantenimientos = Mantenimiento.objects.filter(vehiculo=vehiculo).order_by('-fecha_mantenimiento')
+            vehiculos = Vehiculo.objects.filter(transportista=request.user)
+            
+            if not vehiculos.exists():
+                return Response({'error': 'No tiene vehículo asignado'}, status=status.HTTP_404_NOT_FOUND)
 
-            for mantenimiento in mantenimientos:
-                km_restante = mantenimiento.kilometraje_proximo - vehiculo.kilometraje_actual
+            for vehiculo in vehiculos:
+                mantenimientos = Mantenimiento.objects.filter(vehiculo=vehiculo).order_by('-fecha_mantenimiento')
+                
+                # Agrupamos por tipo para tomar solo el último de cada tipo
+                tipos_vistos = set()
+                
+                for mantenimiento in mantenimientos:
+                    if mantenimiento.tipo in tipos_vistos:
+                        continue 
+                    tipos_vistos.add(mantenimiento.tipo)
 
-                if km_restante <= margen_alerta:
-                    tipo_mostrar = mantenimiento.get_tipo_display()
-                    mensaje = f"Próximo {tipo_mostrar} a los {mantenimiento.kilometraje_proximo} km. Quedan {km_restante} km."
-                    alertas.append({'mensaje': mensaje})
+                    km_restante = mantenimiento.kilometraje_proximo - vehiculo.kilometraje_actual
+
+                    if km_restante <= margen_alerta:
+                        tipo_mostrar = mantenimiento.get_tipo_display()
+                        mensaje = f"[{vehiculo.placa}] Próximo {tipo_mostrar} a los {mantenimiento.kilometraje_proximo} km. Quedan {km_restante} km."
+                        alertas.append({'mensaje': mensaje})
 
             return Response(alertas, status=status.HTTP_200_OK)
 
-        except Vehiculo.DoesNotExist:
-            return Response({'error': 'No tiene vehículo asignado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-# vista para actualizar el kilometraje del vehículo
 class ActualizarKilometrajeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    
     def patch(self, request):
         vehiculo_id = request.data.get('vehiculo_id')
 

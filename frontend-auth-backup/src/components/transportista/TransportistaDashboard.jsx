@@ -1,222 +1,252 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './TransportistaDashboard.css';
-import '../administrador/AdminUsers.css'; 
 import MantenimientoForm from './MantenimientoForm';
 import HistorialMantenimientos from './HistorialMantenimientos';
 import ActualizarKilometraje from './ActualizarKilometraje';
+import CIcon from '@coreui/icons-react';
+import { cilTruck, cilSettings, cilBell, cilHistory, cilAccountLogout, cilSpeedometer } from '@coreui/icons';
 
 export default function TransportistaDashboard() {
-  const [vehiculo, setVehiculo] = useState(null);
+  const [listaVehiculos, setListaVehiculos] = useState([]);
+  const [vehiculoActual, setVehiculoActual] = useState(null);
   const [alertas, setAlertas] = useState([]);
   const [asignaciones, setAsignaciones] = useState([]);
   const [activeTab, setActiveTab] = useState('vehiculo');
 
   const token = localStorage.getItem('access');
+  const BASE_URL = 'http://127.0.0.1:8000';
 
   useEffect(() => {
-    fetchVehiculo();
+    fetchVehiculos();
     fetchAlertas();
     fetchAsignaciones();
   }, []);
 
-  const fetchVehiculo = async () => {
+  const fetchVehiculos = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo', {
+      const response = await axios.get(`${BASE_URL}/api/vehiculos/transportista/vehiculo`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setVehiculo(response.data);
+      const datos = Array.isArray(response.data) ? response.data : [response.data];
+      setListaVehiculos(datos);
+      if (datos.length > 0) {
+        setVehiculoActual(datos[0]);
+      }
     } catch (error) {
-      console.error('Error al obtener el vehículo:', error.response?.data || error.message);
+      console.error(error);
     }
   };
 
   const fetchAlertas = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/alertas', {
+      const response = await axios.get(`${BASE_URL}/api/vehiculos/transportista/alertas`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAlertas(response.data);
     } catch (error) {
-      console.error('Error al obtener alertas:', error);
+      console.error(error);
     }
   };
 
   const fetchAsignaciones = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/servicios/mis-asignaciones/', {
+      const response = await axios.get(`${BASE_URL}/api/servicios/mis-asignaciones/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const listaViajes = response.data.results || response.data;
       setAsignaciones(Array.isArray(listaViajes) ? listaViajes : []);
     } catch (error) {
-      console.error('Error al obtener asignaciones:', error);
       setAsignaciones([]); 
     }
   };
 
   const cambiarEstado = async (nuevoEstado) => {
+    if (!vehiculoActual) return;
     try {
-      await axios.patch('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo/estado',
-        { vehiculo_id: vehiculo.id, estado: nuevoEstado },
+      await axios.patch(`${BASE_URL}/api/vehiculos/transportista/vehiculo/estado`,
+        { vehiculo_id: vehiculoActual.id, estado: nuevoEstado },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(`Estado actualizado a ${nuevoEstado}`);
-      fetchVehiculo();
+      fetchVehiculos();
     } catch (error) {
-      console.error('Error al cambiar el estado:', error);
+      console.error(error);
     }
   };
 
-  const handleKilometrajeActualizado = () => {
-    fetchAlertas();
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login'; 
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="sidebar">
-        <h2>Volece.CA</h2>
-        <button onClick={() => setActiveTab('vehiculo')} className={activeTab === 'vehiculo' ? 'active-sidebar' : ''}>Vehículo</button>
-        <button onClick={() => setActiveTab('mantenimientos')} className={activeTab === 'mantenimientos' ? 'active-sidebar' : ''}>Mantenimientos</button>
-        <button onClick={() => setActiveTab('alertas')} className={activeTab === 'alertas' ? 'active-sidebar' : ''}>Alertas / Viajes</button>
-        <button onClick={() => setActiveTab('historial')} className={activeTab === 'historial' ? 'active-sidebar' : ''}>Historial</button>
+    <div className="vlc-tra-wrapper">
+      <aside className="vlc-tra-sidebar">
+        <div className="vlc-tra-logo">
+          <h1>VOLECE<span>.CA</span></h1>
+        </div>
+        <nav className="vlc-tra-nav">
+          <div className={`vlc-tra-nav-item ${activeTab === 'vehiculo' ? 'active' : ''}`} onClick={() => setActiveTab('vehiculo')}>
+            <CIcon icon={cilTruck} className="vlc-tra-icon" />
+            <span>Mis Vehículos</span>
+          </div>
+          <div className={`vlc-tra-nav-item ${activeTab === 'mantenimientos' ? 'active' : ''}`} onClick={() => setActiveTab('mantenimientos')}>
+            <CIcon icon={cilSettings} className="vlc-tra-icon" />
+            <span>Mantenimientos</span>
+          </div>
+          <div className={`vlc-tra-nav-item ${activeTab === 'kilometraje' ? 'active' : ''}`} onClick={() => setActiveTab('kilometraje')}>
+            <CIcon icon={cilSpeedometer} className="vlc-tra-icon" />
+            <span>Kilometraje</span>
+          </div>
+          <div className={`vlc-tra-nav-item ${activeTab === 'alertas' ? 'active' : ''}`} onClick={() => setActiveTab('alertas')}>
+            <CIcon icon={cilBell} className="vlc-tra-icon" />
+            <span>Viajes y Alertas</span>
+          </div>
+          <div className={`vlc-tra-nav-item ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+            <CIcon icon={cilHistory} className="vlc-tra-icon" />
+            <span>Historial</span>
+          </div>
+        </nav>
+        <div className="vlc-tra-sidebar-footer">
+          <div className="vlc-tra-nav-item logout" onClick={handleLogout}>
+            <CIcon icon={cilAccountLogout} className="vlc-tra-icon" />
+            <span>Cerrar Sesión</span>
+          </div>
+        </div>
+      </aside>
 
-        <br /><br />
-        <button className="logout-button" onClick={() => {
-          localStorage.removeItem('access');
-          window.location.href = '/login'; 
-        }}>
-          Cerrar sesión
-        </button>
-      </div>
+      <main className="vlc-tra-main">
+        <header className="vlc-tra-header">
+          <h2>Panel del Socio Transportista</h2>
+        </header>
 
-      <div className="dashboard-content">
-        <div className="dashboard-content-inner">
-          <h1>Dashboard Socio Transportista</h1>
-          <hr style={{ marginBottom: '20px', borderColor: '#256d39' }} />
-
+        <section className="vlc-tra-content">
           {activeTab === 'vehiculo' && (
-            <div className="card-section">
-              {vehiculo ? (
-                <div className="vehiculo-info">
-                  <p><strong>Placa:</strong> {vehiculo.placa}</p>
-                  <p><strong>Marca:</strong> {vehiculo.marca}</p>
-                  <p><strong>Modelo:</strong> {vehiculo.modelo}</p>
-                  <p><strong>Año:</strong> {vehiculo.anio}</p>
-                  <p><strong>Color:</strong> {vehiculo.color}</p>
-                  <p><strong>Tonelaje:</strong> {vehiculo.tonelaje} toneladas</p>
-                  <p><strong>Combustible:</strong> {vehiculo.combustible}</p>
-                  <p><strong>Estado:</strong> <span className="estado-vehiculo">{vehiculo.estado}</span></p>
+            <div className="vlc-tra-fade-in">
+              {listaVehiculos.length > 1 && (
+                <div className="vlc-tra-selector">
+                    <p>Seleccione unidad:</p>
+                    <div className="vlc-tra-selector-list">
+                        {listaVehiculos.map(v => (
+                            <button 
+                                key={v.id} 
+                                className={`vlc-tra-sel-btn ${vehiculoActual?.id === v.id ? 'active' : ''}`}
+                                onClick={() => setVehiculoActual(v)}
+                            >
+                                {v.placa} - {v.modelo}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+              )}
 
-                  <div className="estado-buttons">
-                    <button onClick={() => cambiarEstado('ACTIVO')}>Activo</button>
-                    <button onClick={() => cambiarEstado('INACTIVO')}>Inactivo</button>
-                    <button onClick={() => cambiarEstado('MANTENIMIENTO')}>Mantenimiento</button>
+              {vehiculoActual ? (
+                <div className="vlc-tra-card-info">
+                  <div className="vlc-tra-card-header">
+                    <h3>Información de la Unidad</h3>
+                    <span className={`vlc-tra-badge ${vehiculoActual.estado}`}>{vehiculoActual.estado}</span>
+                  </div>
+
+                  <div className="vlc-tra-detail-layout">
+                      <div className="vlc-tra-photo-container">
+                          {vehiculoActual.foto ? (
+                              <img 
+                                src={`${BASE_URL}${vehiculoActual.foto}`} 
+                                alt="Foto Vehículo" 
+                                className="vlc-tra-vehiculo-img"
+                              />
+                          ) : (
+                              <div className="vlc-tra-no-photo">
+                                  <CIcon icon={cilTruck} size="3xl"/>
+                                  <p>Sin foto</p>
+                              </div>
+                          )}
+                      </div>
+
+                      <div className="vlc-tra-info-grid">
+                        <div className="vlc-tra-info-item"><strong>Placa:</strong> <span>{vehiculoActual.placa}</span></div>
+                        <div className="vlc-tra-info-item"><strong>Marca:</strong> <span>{vehiculoActual.marca}</span></div>
+                        <div className="vlc-tra-info-item"><strong>Modelo:</strong> <span>{vehiculoActual.modelo}</span></div>
+                        <div className="vlc-tra-info-item"><strong>Año:</strong> <span>{vehiculoActual.anio}</span></div>
+                        <div className="vlc-tra-info-item"><strong>Color:</strong> <span>{vehiculoActual.color}</span></div>
+                        <div className="vlc-tra-info-item"><strong>Tonelaje:</strong> <span>{vehiculoActual.tonelaje} t</span></div>
+                        <div className="vlc-tra-info-item"><strong>Combustible:</strong> <span>{vehiculoActual.combustible}</span></div>
+                      </div>
+                  </div>
+                  
+                  <div className="vlc-tra-state-actions">
+                    <p>Actualizar estado operativo:</p>
+                    <div className="vlc-tra-btn-group">
+                      <button className="vlc-tra-btn active" onClick={() => cambiarEstado('ACTIVO')}>Activo</button>
+                      <button className="vlc-tra-btn inactive" onClick={() => cambiarEstado('INACTIVO')}>Inactivo</button>
+                      <button className="vlc-tra-btn repair" onClick={() => cambiarEstado('MANTENIMIENTO')}>Mantenimiento</button>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <p>Cargando información del vehículo...</p>
-              )}
+              ) : <p className="vlc-tra-loading">Cargando datos...</p>}
             </div>
           )}
 
-          {activeTab === 'mantenimientos' && (
-            <div className="card-section">
-              <MantenimientoForm token={token} />
-            </div>
-          )}
-
-          {activeTab === 'historial' && (
-            <HistorialMantenimientos />
-          )}
-
-          {activeTab === 'kilometraje' && (
-            <div className="card-section">
-              <ActualizarKilometraje onKilometrajeActualizado={handleKilometrajeActualizado} />
-            </div>
-          )}
+          {activeTab === 'mantenimientos' && <div className="vlc-tra-fade-in"><MantenimientoForm token={token} /></div>}
+          {activeTab === 'historial' && <div className="vlc-tra-fade-in"><HistorialMantenimientos /></div>}
+          {activeTab === 'kilometraje' && <div className="vlc-tra-fade-in"><ActualizarKilometraje onKilometrajeActualizado={fetchAlertas} /></div>}
 
           {activeTab === 'alertas' && (
-            <div className="card-section">
-              <h3>Mis Viajes Asignados</h3>
-              
-              <table className="tabla-usuarios">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Origen</th>
-                    <th>Destino</th>
-                    {/* NUEVAS COLUMNAS */}
-                    <th>Carga</th>
-                    <th>Vehículo</th>
-                    <th>Cliente</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {asignaciones.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>
-                        No tienes viajes asignados actualmente
-                      </td>
-                    </tr>
-                  ) : (
-                    asignaciones.map((turno) => (
-                      <tr key={turno.id}>
-                        <td>{turno.id}</td>
-                        <td>{turno.fecha_turno}</td>
-                        <td>
-                           {turno.solicitud_data ? turno.solicitud_data.origen : '...'}
-                        </td>
-                        <td>
-                           {turno.solicitud_data ? turno.solicitud_data.destino : '...'}
-                        </td>
-                        {/* DATOS NUEVOS */}
-                        <td>
-                           {turno.solicitud_data ? turno.solicitud_data.tipo_carga : '-'}
-                        </td>
-                        <td>
-                           {turno.solicitud_data ? turno.solicitud_data.tipo_vehiculo : '-'}
-                        </td>
-                        <td style={{fontWeight: '500'}}>
-                           {/* Usamos el nuevo campo calculado del backend */}
-                           {turno.solicitud_data ? turno.solicitud_data.cliente_nombre : '-'}
-                        </td>
-                        <td>
-                          <span style={{
-                            fontWeight: 'bold',
-                            color: turno.estado_solicitud === 'asignado' ? 'green' : '#d9534f'
-                          }}>
-                            {turno.estado_solicitud}
-                          </span>
-                        </td>
+            <div className="vlc-tra-fade-in">
+              <div className="vlc-tra-card">
+                <h3>Mis Viajes Asignados</h3>
+                <div className="vlc-tra-table-wrapper">
+                  <table className="vlc-tra-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Ruta (Origen - Destino)</th>
+                        <th>Carga</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {asignaciones.length === 0 ? (
+                        <tr><td colSpan="6" className="vlc-tra-empty">No hay viajes registrados</td></tr>
+                      ) : (
+                        asignaciones.map((turno) => (
+                          <tr key={turno.id}>
+                            <td>#{turno.id}</td>
+                            <td>{turno.fecha_turno}</td>
+                            <td>
+                              <div className="vlc-tra-route">
+                                {turno.solicitud_data?.origen} <span className="vlc-tra-arrow">→</span> {turno.solicitud_data?.destino}
+                              </div>
+                            </td>
+                            <td>{turno.solicitud_data?.tipo_carga}</td>
+                            <td><strong>{turno.solicitud_data?.cliente_nombre}</strong></td>
+                            <td><span className={`vlc-tra-tag ${turno.estado_solicitud}`}>{turno.estado_solicitud}</span></td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
               {alertas.length > 0 && (
-                <>
-                  <h3 style={{marginTop: '30px', color: '#c53030'}}>Alertas del Vehículo</h3>
+                <div className="vlc-tra-alerts-section">
+                  <h3>Notificaciones del Vehículo</h3>
                   {alertas.map((alerta, idx) => (
-                    <div key={idx} className="alerta-item" style={{
-                        marginTop: '10px',
-                        padding: '10px',
-                        backgroundColor: '#fff3cd',
-                        borderLeft: '5px solid #ffa502',
-                        color: '#856404'
-                    }}>
-                      ⚠️ {alerta.mensaje}
+                    <div key={idx} className="vlc-tra-alert-item">
+                      <CIcon icon={cilBell} className="vlc-tra-alert-icon" />
+                      <span>{alerta.mensaje}</span>
                     </div>
                   ))}
-                </>
+                </div>
               )}
             </div>
           )}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

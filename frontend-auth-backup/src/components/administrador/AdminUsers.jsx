@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa'; 
-import './AdminUsers.css';
-import './estilos/modal.css';
+import './estilos/AdminUsers.css';
 
 export default function AdminUsers() {
   const [usuarios, setUsuarios] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoUsuario, setNuevoUsuario] = useState({
-    username: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    cedula_ruc: '',
-    password: '',
-    rol: 'CLIENTE'
+    username: '', first_name: '', last_name: '',
+    email: '', cedula_ruc: '', password: '', rol: 'CLIENTE'
   });
-
   const [usuarioEditando, setUsuarioEditando] = useState(null);
-
   const token = localStorage.getItem('access');
 
   const cargarUsuarios = async () => {
@@ -28,281 +20,130 @@ export default function AdminUsers() {
       });
       setUsuarios(res.data.results);
     } catch (error) {
-      console.error('Error al cargar usuarios:', error.response?.data || error.message);
+      console.error('Error:', error.message);
     }
   };
 
-  useEffect(() => {
-    cargarUsuarios(); //  Carga los usuarios al entrar
-  },[]);
-  //manejo de la eliminación de usuarios
+  useEffect(() => { cargarUsuarios(); }, []);
+
   const handleDelete = async (id) => {
-    const confirmacion = window.confirm('¿Estás seguro de eliminar este usuario?');
-    if (!confirmacion) return;
-  
+    if (!window.confirm('¿Eliminar este usuario?')) return;
     try {
       await axios.delete(`http://127.0.0.1:8000/api/usuarios/eliminar/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
-      alert('¡Usuario eliminado exitosamente!');
-      cargarUsuarios(); // recargar usuarios después de eliminar uno
+      cargarUsuarios();
     } catch (error) {
-      console.error('Error al eliminar usuario:', error.response?.data || error.message);
-      if (error.response && error.response.status === 401) {
-        alert('Sesión expirada. Por favor vuelve a iniciar sesión.');
-        localStorage.clear();
-        window.location.href = '/login';
-      } else {
-        alert('Error al eliminar usuario.');
-      }
+      alert('Error al eliminar');
     }
   };
-  // manejo de la edición de usuarios
+
   const handleEditar = (usuario) => {
     setUsuarioEditando(usuario);
     setMostrarModal(true);
   };
-  // edicion de usuarios
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-  
-    // Extraemos solo los campos permitidos
-    const { id, first_name, last_name, rol, cedula_ruc } = usuarioEditando;
-    const datosPermitidos = { first_name, last_name, rol, cedula_ruc };
-  
-    try {
-      await axios.put(`http://127.0.0.1:8000/api/usuarios/editar/${id}/`, datosPermitidos, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      alert("¡Usuario actualizado exitosamente!");
-      setMostrarModal(false);
-      setUsuarioEditando(null);
-      cargarUsuarios();
-    } catch (error) {
-      console.error("Error al actualizar usuario:", error.response?.data || error.message);
-      alert(
-        "Error al actualizar usuario:\n" +
-          JSON.stringify(error.response?.data || error.message, null, 2)
-      );
-    }
-  };
-  
-  
-   // manejo en cambio de los datos del formulario o creación de usuario
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
     if (usuarioEditando) {
       setUsuarioEditando({ ...usuarioEditando, [name]: value });
     } else {
       setNuevoUsuario({ ...nuevoUsuario, [name]: value });
     }
   };
-  
-  const handleSubmit = async (e) => {
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
-    const {
-      username,
-      first_name,
-      last_name,
-      email,
-      cedula_ruc,
-      password,
-      rol
-    } = nuevoUsuario;
-  
-    if (!username || !first_name || !last_name || !email || !cedula_ruc || !password || !rol) {
-      alert('Todos los campos son obligatorios.');
-      return;
-    }
-  
+    const url = usuarioEditando 
+      ? `http://127.0.0.1:8000/api/usuarios/editar/${usuarioEditando.id}/`
+      : 'http://127.0.0.1:8000/api/usuarios/registro/';
+    
+    const method = usuarioEditando ? 'put' : 'post';
+    const data = usuarioEditando 
+      ? { first_name: usuarioEditando.first_name, last_name: usuarioEditando.last_name, rol: usuarioEditando.rol, cedula_ruc: usuarioEditando.cedula_ruc }
+      : nuevoUsuario;
+
     try {
-      const token = localStorage.getItem('access');  
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/usuarios/registro/',
-        nuevoUsuario,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-  
-      alert(`Usuario ${response.data.username} creado correctamente`);
-      setMostrarModal(false);
-      setNuevoUsuario({
-        username: '',
-        first_name: '',
-        last_name: '',
-        email: '',
-        cedula_ruc: '',
-        password: '',
-        rol: 'CLIENTE'
+      await axios[method](url, data, {
+        headers: { Authorization: `Bearer ${token}` }
       });
+      setMostrarModal(false);
+      setUsuarioEditando(null);
       cargarUsuarios();
+      alert('Operación exitosa');
     } catch (error) {
-      console.error('Error al crear usuario:', error);
-  
-      if (error.response && error.response.data) {
-        const errores = error.response.data;
-        let mensaje = 'Error desconocido.';
-  
-        if (typeof errores === 'object') {
-          mensaje = Object.entries(errores)
-            .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
-            .join('\n');
-        } else {
-          mensaje = errores?.detail || 'Error inesperado.';
-        }
-  
-        alert(mensaje);
-      } else {
-        alert('Error de conexión con el servidor.');
-      }
+      alert('Error en la operación');
     }
   };
-  
+
   return (
-    <div className="usuarios-container">
-      <h2>Gestión de Usuarios</h2>
+    <div className="vlc-usr-container">
+      <div className="vlc-usr-header">
+        <h2>Gestión de Usuarios</h2>
+        <button className="vlc-usr-btn-add" onClick={() => setMostrarModal(true)}>
+          <FaPlus /> Crear Nuevo Usuario
+        </button>
+      </div>
 
-      {/* Botón para abrir modal */}
-      <button className="btn-crear-usuario" onClick={() => setMostrarModal(true)}>
-        <FaPlus /> Crear Nuevo Usuario
-      </button>
-
-      {/* Tabla de usuarios */}
-      <table className="tabla-usuarios">
-        <thead>
-          <tr>
-            <th>Cédula</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-            {usuarios.map((usuario) => (
-                <tr key={usuario.id}>
-                <td>{usuario.cedula_ruc}</td>
-                <td>{usuario.first_name} {usuario.last_name}</td>
-                <td>{usuario.email}</td>
-                <td>{usuario.rol}</td>
+      <div className="vlc-usr-table-wrapper">
+        <table className="vlc-usr-table">
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Nombre Completo</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usuarios.map((u) => (
+              <tr key={u.id}>
+                <td>{u.cedula_ruc}</td>
+                <td>{u.first_name} {u.last_name}</td>
+                <td>{u.email}</td>
+                <td><span className={`vlc-usr-role-tag ${u.rol}`}>{u.rol}</span></td>
                 <td>
-                    <button className="btn-icon editar" onClick={() => handleEditar(usuario)}>
-                        <FaEdit />
-                    </button>
-                    <button className="btn-icon eliminar" onClick={() => handleDelete(usuario.id)}>
-                    <FaTrash />
-                    </button>
+                  <div className="vlc-usr-actions">
+                    <button className="vlc-usr-icon-btn edit" onClick={() => handleEditar(u)}><FaEdit /></button>
+                    <button className="vlc-usr-icon-btn delete" onClick={() => handleDelete(u.id)}><FaTrash /></button>
+                  </div>
                 </td>
-                </tr>
+              </tr>
             ))}
-        </tbody>
+          </tbody>
+        </table>
+      </div>
 
-      </table>
-
-      {/* Modal para Crear y editar Usuario */}
       {mostrarModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>{usuarioEditando ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h3>
-            <form onSubmit={usuarioEditando ? handleUpdate : handleSubmit}>
-
-            <input
-                type="text"
-                name="first_name"
-                placeholder="Nombre"
-                value={usuarioEditando ? usuarioEditando.first_name : nuevoUsuario.first_name}
-                onChange={handleChange}
-                required
-              />
-
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Apellido"
-                value={usuarioEditando ? usuarioEditando.last_name : nuevoUsuario.last_name}
-                onChange={handleChange}
-                required
-              />
-
-              {/* muestra estos campos solo en la creacion en la edición les oculta */}
+        <div className="vlc-modal-overlay">
+          <div className="vlc-modal-card">
+            <h3>{usuarioEditando ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+            <form className="vlc-modal-form" onSubmit={handleFormSubmit}>
+              <div className="vlc-modal-row">
+                <input type="text" name="first_name" placeholder="Nombre" value={usuarioEditando ? usuarioEditando.first_name : nuevoUsuario.first_name} onChange={handleChange} required />
+                <input type="text" name="last_name" placeholder="Apellido" value={usuarioEditando ? usuarioEditando.last_name : nuevoUsuario.last_name} onChange={handleChange} required />
+              </div>
+              
               {!usuarioEditando && (
                 <>
-                  <input
-                    type="text"
-                    name="username"
-                    placeholder="Nombre de usuario"
-                    value={nuevoUsuario.username}
-                    onChange={handleChange}
-                    required
-                  />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={nuevoUsuario.email}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="text" name="username" placeholder="Usuario" value={nuevoUsuario.username} onChange={handleChange} required />
+                  <input type="email" name="email" placeholder="Email" value={nuevoUsuario.email} onChange={handleChange} required />
+                  <input type="password" name="password" placeholder="Contraseña" value={nuevoUsuario.password} onChange={handleChange} required />
                 </>
               )}
 
-
-              <input
-                type="text"
-                name="cedula_ruc"
-                placeholder="Cédula o RUC"
-                value={usuarioEditando ? usuarioEditando.cedula_ruc : nuevoUsuario.cedula_ruc}
-                onChange={handleChange}
-                required
-              />
-
-              {!usuarioEditando && (
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Contraseña"
-                  value={nuevoUsuario.password}
-                  onChange={handleChange}
-                  required
-                />
-              )}
-
-              <select
-                name="rol"
-                value={usuarioEditando ? usuarioEditando.rol : nuevoUsuario.rol}
-                onChange={handleChange}
-                required
-              >
+              <input type="text" name="cedula_ruc" placeholder="Cédula/RUC" value={usuarioEditando ? usuarioEditando.cedula_ruc : nuevoUsuario.cedula_ruc} onChange={handleChange} required />
+              
+              <select name="rol" value={usuarioEditando ? usuarioEditando.rol : nuevoUsuario.rol} onChange={handleChange}>
                 <option value="CLIENTE">Cliente</option>
                 <option value="TRANSP">Transportista</option>
                 <option value="ADMIN">Administrador</option>
               </select>
 
-              <div className="modal-buttons">
-                <button type="submit" className="btn-modal">
-                  {usuarioEditando ? 'Actualizar' : 'Crear'}
-                </button>
-                <button
-                  type="button"
-                  className="btn-modal-cancelar"
-                  onClick={() => {
-                    setMostrarModal(false);
-                    setUsuarioEditando(null);
-                  }}
-                >
-                  Cancelar
-                </button>
+              <div className="vlc-modal-btns">
+                <button type="submit" className="vlc-modal-btn save">{usuarioEditando ? 'Actualizar' : 'Crear'}</button>
+                <button type="button" className="vlc-modal-btn cancel" onClick={() => { setMostrarModal(false); setUsuarioEditando(null); }}>Cancelar</button>
               </div>
             </form>
           </div>

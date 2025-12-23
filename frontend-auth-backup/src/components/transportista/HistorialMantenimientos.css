@@ -1,0 +1,128 @@
+:root {
+  --vlc-hmn-primary: #279200;
+  --vlc-hmn-bg: #ffffff;
+  --vlc-hmn-text: #1e293b;
+  --vlc-hmn-muted: #64748b;
+  --vlc-hmn-border: #e2e8f0;
+}
+
+.vlc-hmn-container {
+  width: 100%;
+  animation: vlcHmnFadeIn 0.5s ease-out;
+}
+
+.vlc-hmn-card {
+  background-color: var(--vlc-hmn-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--vlc-hmn-border);
+  overflow: hidden;
+}
+
+.vlc-hmn-header {
+  padding: 1.5rem 2rem;
+  background-color: #fafbfc;
+  border-bottom: 2px solid var(--vlc-hmn-border);
+}
+
+.vlc-hmn-header h2 {
+  color: var(--vlc-hmn-text);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+
+.vlc-hmn-header p {
+  color: var(--vlc-hmn-muted);
+  font-size: 0.9rem;
+}
+
+.vlc-hmn-body {
+  padding: 1.5rem;
+}
+
+.vlc-hmn-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--vlc-hmn-border);
+}
+
+.vlc-hmn-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.vlc-hmn-table th {
+  background-color: var(--vlc-hmn-primary);
+  color: white;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.vlc-hmn-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: var(--vlc-hmn-text);
+  vertical-align: middle;
+}
+
+.vlc-hmn-table tr:last-child td {
+  border-bottom: none;
+}
+
+.vlc-hmn-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.vlc-hmn-vehicle {
+  color: var(--vlc-hmn-primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vlc-hmn-type {
+  font-weight: 600;
+  color: var(--vlc-hmn-text);
+}
+
+.vlc-hmn-next-km {
+  font-weight: 700;
+  color: #c2410c;
+}
+
+.vlc-hmn-obs {
+  font-size: 0.85rem;
+  color: var(--vlc-hmn-muted);
+  max-width: 250px;
+  line-height: 1.4;
+}
+
+.vlc-hmn-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--vlc-hmn-muted);
+  font-style: italic;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+@keyframes vlcHmnFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .vlc-hmn-header {
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .vlc-hmn-body {
+    padding: 1rem;
+  }
+}

@@ -13,7 +13,6 @@ const SolicitarServicio = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const data = {
       origen,
       destino,
@@ -24,90 +23,98 @@ const SolicitarServicio = ({ onClose }) => {
 
     try {
       await crearSolicitud(data, localStorage.getItem('authToken'));
-      setSuccessMessage("Solicitud creada con éxito");
+      setSuccessMessage("Solicitud enviada correctamente. Nuestro equipo la revisará pronto.");
       setError(null);
-      
-      setOrigen('');
-      setDestino('');
-      setTipoVehiculo('');
-      setTipoCarga('');
-      setFechaSolicitud('');
+      setOrigen(''); setDestino(''); setTipoVehiculo(''); setTipoCarga(''); setFechaSolicitud('');
     } catch (err) {
-      setError("Error al crear solicitud");
+      setError("Hubo un problema al procesar la solicitud. Intente nuevamente.");
       setSuccessMessage(null);
     }
   };
 
   return (
-    <div className="form-overlay">
-      <form onSubmit={handleSubmit} className="form-solicitar-servicio">
-        <button
-          type="button"
-          className="btn-close-x"
-          onClick={onClose}
-          aria-label="Cerrar formulario"
-        >
-          &times;
-        </button>
+    <div className="vlc-sol-form-container">
+      <div className="vlc-sol-form-card">
+        <div className="vlc-sol-form-header">
+          <h2>Nueva Solicitud de Transporte</h2>
+          <p>Complete los detalles del servicio que desea contratar.</p>
+        </div>
 
-        <h2>Crear Solicitud de Transporte</h2>
+        <form onSubmit={handleSubmit} className="vlc-sol-form-body">
+          <div className="vlc-sol-form-grid">
+            <div className="vlc-sol-field full">
+              <label>Origen</label>
+              <input
+                type="text"
+                value={origen}
+                onChange={(e) => setOrigen(e.target.value)}
+                required
+                placeholder="Ciudad o dirección de recogida"
+              />
+            </div>
 
-        <label>Origen</label>
-        <input
-          type="text"
-          value={origen}
-          onChange={(e) => setOrigen(e.target.value)}
-          required
-          placeholder="Ciudad o dirección de origen"
-        />
+            <div className="vlc-sol-field full">
+              <label>Destino</label>
+              <input
+                type="text"
+                value={destino}
+                onChange={(e) => setDestino(e.target.value)}
+                required
+                placeholder="Ciudad o dirección de entrega"
+              />
+            </div>
 
-        <label>Destino</label>
-        <input
-          type="text"
-          value={destino}
-          onChange={(e) => setDestino(e.target.value)}
-          required
-          placeholder="Ciudad o dirección de destino"
-        />
+            <div className="vlc-sol-field">
+              <label>Tipo de Vehículo</label>
+              <select
+                value={tipoVehiculo}
+                onChange={(e) => setTipoVehiculo(e.target.value)}
+                required
+              >
+                <option value="">Seleccione...</option>
+                <option value="Volqueta">Volqueta</option>
+                <option value="Camión">Camión</option>
+                <option value="Trailer">Trailer</option>
+                <option value="Furgón">Furgón</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
 
-        <label>Tipo de Vehículo</label>
-        <select
-          value={tipoVehiculo}
-          onChange={(e) => setTipoVehiculo(e.target.value)}
-          required
-        >
-          <option value="">Seleccione un vehículo</option>
-          <option value="Volqueta">Volqueta</option>
-          <option value="Camión">Camión</option>
-          <option value="Trailer">Trailer</option>
-          <option value="Furgón">Furgón</option>
-          <option value="Otro">Otro</option>
-        </select>
+            <div className="vlc-sol-field">
+              <label>Fecha Estimada</label>
+              <input
+                type="date"
+                value={fechaSolicitud}
+                onChange={(e) => setFechaSolicitud(e.target.value)}
+                required
+              />
+            </div>
 
-        <label>Tipo de Carga</label>
-        <input
-          type="text"
-          value={tipoCarga}
-          onChange={(e) => setTipoCarga(e.target.value)}
-          required
-          placeholder="Ejemplo: Mercancía general, material pétreo..."
-        />
+            <div className="vlc-sol-field full">
+              <label>Descripción de la Carga</label>
+              <input
+                type="text"
+                value={tipoCarga}
+                onChange={(e) => setTipoCarga(e.target.value)}
+                required
+                placeholder="Ej: Material pétreo, sacos de cemento, maquinaria..."
+              />
+            </div>
+          </div>
 
-        <label>Fecha de Solicitud</label>
-        <input
-          type="date"
-          value={fechaSolicitud}
-          onChange={(e) => setFechaSolicitud(e.target.value)}
-          required
-        />
+          {error && <div className="vlc-sol-alert error">{error}</div>}
+          {successMessage && <div className="vlc-sol-alert success">{successMessage}</div>}
 
-        {error && <p className="form-error">{error}</p>}
-        {successMessage && <p className="form-success">{successMessage}</p>}
-
-        <button type="submit" className="btn-primary btn-submit">
-          Crear Solicitud
-        </button>
-      </form>
+          <div className="vlc-sol-form-footer">
+            <button type="button" className="vlc-sol-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="vlc-sol-btn-submit">
+              Enviar Solicitud
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

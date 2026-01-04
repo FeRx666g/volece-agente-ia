@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 
 import requests
 
-from .models import SolicitudServicio
+from .models import SolicitudServicio, PrediccionIA
 from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer
 
 from django.utils import timezone
@@ -39,7 +39,7 @@ class ListaSolicitudesClienteView(generics.ListAPIView):
 
 
 class ListaSolicitudesAdminView(generics.ListAPIView):
-    queryset = SolicitudServicio.objects.all().order_by('-fecha_creacion')
+    queryset = SolicitudServicio.objects.prefetch_related('prediccion_ia').all().order_by('-fecha_creacion')
     serializer_class = SolicitudServicioSerializer
     permission_classes = [IsAdminUser]  
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -51,7 +51,7 @@ class SolicitudDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = SolicitudServicioSerializer
     permission_classes = [IsAdminUser]
 
-N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
+N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook-test/asignar-turno-ai"
 N8N_WEBHOOK_WHATSAPP = "http://localhost:5678/webhook/notificacion-transportista"
  
 class AsignarTurnoIAView(APIView):
@@ -90,6 +90,12 @@ class AsignarTurnoIAView(APIView):
             resp = requests.post(N8N_URL_ASIGNAR_TURNO, json=payload, timeout=60)
             resp.raise_for_status()
             data = resp.json()
+
+            prediccion, created = PrediccionIA.objects.update_or_create(
+                solicitud=solicitud,
+                defaults={'datos': data}
+            )
+
         except Exception as e:
             return Response(
                 {
@@ -109,7 +115,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
 
         solicitud_id = request.data.get('solicitud_id')
         transportista_id = request.data.get('transportista_id')
-        vehiculo_id = request.data.get('vehiculo_id') # <--- NUEVO: RECIBIMOS EL ID DEL VEHÍCULO
+        vehiculo_id = request.data.get('vehiculo_id') 
         nuevo_estado = request.data.get('nuevo_estado')
         comentario_ia = request.data.get('comentario_ia')
 
@@ -140,20 +146,16 @@ class CrearTurnoDesdeSolicitudView(APIView):
 
         turno = DatasetTurnosIA.objects.filter(solicitud=solicitud).first()
 
-        # --- LÓGICA DE SELECCIÓN DE VEHÍCULO CORREGIDA ---
         vehiculo = None
         
-        # 1. Si nos envían un ID específico, lo buscamos directamente
         if vehiculo_id:
             vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
-            # Opcional: Validar que pertenezca al transportista
             if vehiculo.transportista_id != int(transportista_id):
                  return Response(
                     {"detail": "El vehículo seleccionado no pertenece al transportista."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
-        # 2. Si NO hay ID (fallback), buscamos el primero activo del transportista
         elif turno is None or turno.transportista_id != int(transportista_id):
             vehiculo = Vehiculo.objects.filter(
                 transportista_id=transportista_id,
@@ -166,9 +168,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         else:
-            # Si ya existía un turno y es el mismo transportista, mantenemos el vehículo anterior
             vehiculo = turno.vehiculo
-        # ---------------------------------------------------
 
         solicitud.estado = nuevo_estado
         solicitud.save()

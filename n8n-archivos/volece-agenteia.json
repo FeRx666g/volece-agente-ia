@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "VoleceAgenteIA",
   "nodes": [
     {
       "parameters": {
@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        32,
-        96
+        -256,
+        -96
       ],
-      "id": "e08b4a4b-f7e7-49ea-858c-0a3709be2da8",
+      "id": "f8a2006b-0f76-49d3-bc5e-59cc8647b817",
       "name": "Webhook",
       "webhookId": "0e3518f2-f483-46a8-a810-0eee1bc77d21"
     },
@@ -25,10 +25,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1296,
-        96
+        1008,
+        -96
       ],
-      "id": "07aeecfe-4ce7-42f2-9921-098dad882ca2",
+      "id": "d027811e-c6b9-4b01-b019-140fab9c0b7f",
       "name": "Code"
     },
     {
@@ -40,30 +40,30 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        240,
-        96
+        -48,
+        -96
       ],
-      "id": "21ca451c-f57b-4c5e-9668-d7060c147e96",
+      "id": "21de3710-c7ac-45a7-93d3-b802bdad7b11",
       "name": "Execute a SQL query",
       "alwaysOutputData": true,
       "credentials": {
         "postgres": {
-          "id": "YZkZS0KDqAsNU6fG",
+          "id": "cOsorjothllZHfRN",
           "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "\nconst webhookItems = $items(\"Webhook\");\nconst solicitudBody = webhookItems[0]?.json?.body ?? {};\n\nconst transportistasSQL = $items(\"Execute a SQL query\");\n\nconst transportistas = transportistasSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  transportista_nombre: i.json.transportista_nombre,\n  transportista_apellido: i.json.transportista_apellido,\n  vehiculo_id: parseInt(i.json.vehiculo_id, 10),\n  vehiculo_tipo: i.json.vehiculo_tipo,\n  vehiculo_observacion: i.json.observaciones,\n  vehiculo_tonelaje: parseFloat(i.json.vehiculo_tonelaje),\n  vehiculo_placa: i.json.vehiculo_placa,\n}));\n\nconst disponibilidadSQL = $items(\"Execute a SQL query1\");\n\nconst disponibilidad = disponibilidadSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  fechas_ocupado: i.json.fechas_ocupado || [],\n  viajes_semana: parseInt(i.json.viajes_semana, 10) || 0,\n}));\n\nconst candidatos = transportistas.map(t => {\n  const dispo = disponibilidad.find(d => d.transportista_id === t.transportista_id);\n\n  return {\n    ...t,\n    fechas_ocupado: dispo?.fechas_ocupado ?? [],\n    viajes_semana: dispo?.viajes_semana ?? 0,\n  };\n});\n\nreturn [\n  {\n    json: {\n      solicitud: {\n        id_solicitud: solicitudBody.id_solicitud ?? null,\n        tipo_carga: solicitudBody.tipo_carga ?? null,\n        origen: solicitudBody.origen ?? null,\n        destino: solicitudBody.destino ?? null,\n        fecha_solicitud: solicitudBody.fecha_solicitud ?? null,\n      },\n      candidatos\n    },\n  },\n];\n"
+        "jsCode": "\nconst webhookItems = $items(\"Webhook\");\nconst solicitudBody = webhookItems[0]?.json?.body ?? {};\n\nconst transportistasSQL = $items(\"Execute a SQL query\");\n\nconst transportistas = transportistasSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  transportista_nombre: i.json.transportista_nombre,\n  transportista_apellido: i.json.transportista_apellido,\n  vehiculo_id: parseInt(i.json.vehiculo_id, 10),\n  vehiculo_tipo: i.json.vehiculo_tipo,\n  vehiculo_observacion: i.json.observaciones,\n  vehiculo_tonelaje: parseFloat(i.json.vehiculo_tonelaje),\n  vehiculo_placa: i.json.vehiculo_placa,\n}));\n\nconst disponibilidadSQL = $items(\"Execute a SQL query1\");\n\nconst disponibilidad = disponibilidadSQL.map(i => ({\n  transportista_id: parseInt(i.json.transportista_id, 10),\n  fechas_ocupado: i.json.fechas_ocupado || [],\n  viajes_semana: parseInt(i.json.viajes_semana, 10) || 0,\n}));\n\nconst candidatos = transportistas.map(t => {\n  const dispo = disponibilidad.find(d => d.transportista_id === t.transportista_id);\n\n  return {\n    ...t,\n    fechas_ocupado: dispo?.fechas_ocupado ?? [],\n    viajes_semana: dispo?.viajes_semana ?? 0,\n  };\n});\n\nreturn [\n  {\n    json: {\n      solicitud: {\n        id_solicitud: solicitudBody.id_solicitud ?? null,\n        tipo_vehiculo: solicitudBody.tipo_vehiculo ?? null,\n        tipo_carga: solicitudBody.tipo_carga ?? null,\n        origen: solicitudBody.origen ?? null,\n        destino: solicitudBody.destino ?? null,\n        fecha_solicitud: solicitudBody.fecha_solicitud ?? null,\n      },\n      candidatos\n    },\n  },\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        800,
-        96
+        512,
+        -96
       ],
-      "id": "49361208-7de3-48ed-bb7f-632bd2ae3ba8",
+      "id": "b70f3734-4a79-4800-84da-5d2d819d617d",
       "name": "Code1"
     },
     {
@@ -75,11 +75,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        0,
-        0
+        -288,
+        -192
       ],
       "typeVersion": 1,
-      "id": "6bc503c8-4a5d-49a2-8643-00260806cf03",
+      "id": "125104a7-6c1f-42f3-a9c7-851f8387d941",
       "name": "Sticky Note"
     },
     {
@@ -91,11 +91,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        192,
-        0
+        -96,
+        -192
       ],
       "typeVersion": 1,
-      "id": "9d9251e5-08b0-47cd-a754-07d03b66eb8e",
+      "id": "09f0120f-3540-440f-85bf-b31101e320b3",
       "name": "Sticky Note1"
     },
     {
@@ -107,15 +107,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        528,
-        96
+        240,
+        -96
       ],
-      "id": "8b872133-5eca-4d53-a76c-b1bf1b64bfc5",
+      "id": "3db110e6-a09e-44cf-8c2d-49c3ff4109f4",
       "name": "Execute a SQL query1",
       "executeOnce": true,
       "credentials": {
         "postgres": {
-          "id": "YZkZS0KDqAsNU6fG",
+          "id": "cOsorjothllZHfRN",
           "name": "Postgres account"
         }
       }
@@ -129,11 +129,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        416,
-        0
+        128,
+        -192
       ],
       "typeVersion": 1,
-      "id": "df080490-0c72-4712-bc42-e9dbc4f46b39",
+      "id": "7561f16a-1e7c-4686-aebc-b99680e886bc",
       "name": "Sticky Note2"
     },
     {
@@ -145,11 +145,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        736,
-        0
+        448,
+        -192
       ],
       "typeVersion": 1,
-      "id": "074eb293-afdc-44f3-a1d0-8cd55b8012d0",
+      "id": "518c25a0-02d0-4b3c-b15a-204889a0d4e8",
       "name": "Sticky Note3"
     },
     {
@@ -161,11 +161,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        976,
-        0
+        688,
+        -192
       ],
       "typeVersion": 1,
-      "id": "c6a8fdb4-755a-4c53-8571-38bdd54f0196",
+      "id": "5be88ce2-5696-4068-ae0f-177479e95c0f",
       "name": "Sticky Note4"
     },
     {
@@ -192,14 +192,14 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        992,
-        96
+        704,
+        -96
       ],
-      "id": "3a5161a5-402d-40ba-8f32-8bb408fc0fb8",
+      "id": "306c5232-0cec-497e-ae03-c48aa870d80f",
       "name": "Message a model",
       "credentials": {
         "openAiApi": {
-          "id": "qNvlmfAYjJAFRZNX",
+          "id": "881FLf2GVJNYDa30",
           "name": "OpenAi account"
         }
       }
@@ -213,11 +213,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1248,
-        0
+        960,
+        -192
       ],
       "typeVersion": 1,
-      "id": "2d3a3e06-fa75-487c-ab97-f8f1caccaddd",
+      "id": "e7a850cf-053a-46b4-82c4-7b0a7db04fd5",
       "name": "Sticky Note5"
     }
   ],
@@ -283,11 +283,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7facb1c5-5fcc-4092-a8bc-91e6f704072c",
+  "versionId": "20b0326c-b53d-4d33-9b53-b0fe1d54bdc3",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "2f98ed89d022fa1d8f90046f81a645256130dd131c12216bf67a9faa1fe9f709"
+    "instanceId": "bb09ffb74a8815d355a3ae5eca85100fd8c8703c98d7028619c8762912ce2ce6"
   },
-  "id": "6o6y4g4CVXGDngWk",
+  "id": "XVeQ5aF09qqcCQxA",
   "tags": []
 }

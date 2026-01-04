@@ -54,7 +54,8 @@ class Usuario(AbstractUser):
     ]
     rol = models.CharField(max_length=10, choices=ROLES, default='CLIENTE')
     cedula_ruc = models.CharField(max_length=12, unique=True)
-    telefono = models.CharField(max_length=10, blank=True, null=False)  
+    telefono = models.CharField(max_length=10, blank=True, null=False)
+    email = models.EmailField(unique=True) 
 
     objects = UsuarioManager()
 

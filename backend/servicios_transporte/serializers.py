@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SolicitudServicio
+from .models import SolicitudServicio, PrediccionIA
 from gestion_transporte.models import DatasetTurnosIA
 from gestion_vehiculos.models import Vehiculo
 
@@ -9,6 +9,7 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
     transportista_asignado_nombre = serializers.SerializerMethodField()
     vehiculo_asignado_placa = serializers.SerializerMethodField()
     comentario_ia_asignado = serializers.SerializerMethodField()
+    prediccion_data = serializers.SerializerMethodField()
 
     class Meta:
         model = SolicitudServicio
@@ -26,6 +27,7 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
             'transportista_asignado_nombre',
             'vehiculo_asignado_placa',
             'comentario_ia_asignado',
+            'prediccion_data',
         ]
         read_only_fields = ('cliente',)
 
@@ -56,6 +58,12 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
     def get_comentario_ia_asignado(self, obj):
         turno = self._get_turno(obj)
         return turno.comentario_ia if turno else None
+
+    def get_prediccion_data(self, obj):
+        try:
+            return obj.prediccion_ia.datos
+        except Exception:
+            return None
 
 class VehiculoSimpleSerializer(serializers.ModelSerializer):
     class Meta:

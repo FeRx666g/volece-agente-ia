@@ -91,16 +91,45 @@ const Auth = () => {
       setSuccess('Cuenta creada con éxito. Inicia sesión.');
       setIsLogin(true);
     } catch (err) {
-      setError('Error al crear la cuenta. Verifica los datos.');
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+        let mensajes = [];
+
+        const traducir = (msj) => {
+          if (typeof msj !== 'string') return msj;
+          if (msj.includes('user with that username already exists')) return 'El nombre de usuario ya está en uso.';
+          if (msj.includes('user with that cedula_ruc already exists')) return 'Ya existe una cuenta con esta Cédula/RUC.';
+          if (msj.includes('user with that email already exists')) return 'Ya existe una cuenta con este correo electrónico.';
+          if (msj.includes('This field may not be blank')) return 'Este campo no puede estar vacío.';
+          return msj;
+        };
+
+        if (data.cedula_ruc) mensajes.push(`Cédula/RUC: ${traducir(data.cedula_ruc.toString())}`);
+        if (data.username) mensajes.push(`Usuario: ${traducir(data.username.toString())}`);
+        if (data.email) mensajes.push(`Email: ${traducir(data.email.toString())}`);
+        if (data.telefono) mensajes.push(`Teléfono: ${traducir(data.telefono.toString())}`);
+        if (data.password) mensajes.push(`Contraseña: ${traducir(data.password.toString())}`);
+
+        if (mensajes.length === 0) {
+          Object.values(data).forEach(val => {
+            let texto = Array.isArray(val) ? val.join(' ') : String(val);
+            mensajes.push(traducir(texto));
+          });
+        }
+
+        setError(mensajes.join(' | '));
+      } else {
+        setError('Error de conexión o del servidor. Intenta más tarde.');
+      }
     }
   };
 
   return (
     <div className="vlc-auth-page">
       <button className="vlc-auth-back" onClick={() => navigate('/inicio')}>← Volver al Inicio</button>
-      
+
       <div className={`vlc-auth-container ${!isLogin ? 'vlc-right-active' : ''}`}>
-        
+
         <div className="vlc-auth-form-side vlc-signup-side">
           <form onSubmit={handleRegisterSubmit}>
             <h1>Crear Cuenta</h1>
@@ -132,6 +161,7 @@ const Auth = () => {
               ¿Olvidaste tu contraseña?
             </span>
             {error && isLogin && <p className='vlc-auth-error'>{error}</p>}
+            {success && isLogin && <p className='vlc-auth-success'>{success}</p>}
             <button type='submit' className="vlc-auth-btn-main">Entrar</button>
           </form>
         </div>
@@ -141,12 +171,12 @@ const Auth = () => {
             <div className="vlc-auth-overlay-panel vlc-overlay-left">
               <h1>¡Bienvenido!</h1>
               <p>Si ya tienes una cuenta, inicia sesión para continuar con nosotros.</p>
-              <button className="vlc-auth-btn-ghost" onClick={() => setIsLogin(true)}>Login</button>
+              <button className="vlc-auth-btn-ghost" onClick={() => { setIsLogin(true); setError(''); setSuccess(''); }}>Login</button>
             </div>
             <div className="vlc-auth-overlay-panel vlc-overlay-right">
               <h1>¡Hola de nuevo!</h1>
               <p>Regístrate y comienza a gestionar tus cargas de forma inteligente con VOLECE.</p>
-              <button className="vlc-auth-btn-ghost" onClick={() => setIsLogin(false)}>Registrarse</button>
+              <button className="vlc-auth-btn-ghost" onClick={() => { setIsLogin(false); setError(''); setSuccess(''); }}>Registrarse</button>
             </div>
           </div>
         </div>

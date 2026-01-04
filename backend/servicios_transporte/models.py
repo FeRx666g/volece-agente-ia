@@ -16,10 +16,18 @@ class SolicitudServicio(models.Model):
     destino = models.CharField(max_length=255)
     tipo_vehiculo = models.CharField(max_length=100, null=True, blank=True)
 
-    tipo_carga = models.CharField(max_length=100)
+    tipo_carga = models.CharField(max_length=1000)
     fecha_solicitud = models.DateField()
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.origen} -> {self.destino} ({self.estado})"
+
+class PrediccionIA(models.Model):
+    solicitud = models.OneToOneField(SolicitudServicio, on_delete=models.CASCADE, related_name='prediccion_ia')
+    datos = models.JSONField(null=True, blank=True) 
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Predicción para Solicitud #{self.solicitud.id}"

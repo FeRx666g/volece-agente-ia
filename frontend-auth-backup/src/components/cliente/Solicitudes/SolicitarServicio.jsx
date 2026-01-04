@@ -7,6 +7,7 @@ const SolicitarServicio = ({ onClose }) => {
   const [destino, setDestino] = useState('');
   const [tipoVehiculo, setTipoVehiculo] = useState('');
   const [tipoCarga, setTipoCarga] = useState('');
+  const [tonelaje, setTonelaje] = useState('');
   const [fechaSolicitud, setFechaSolicitud] = useState('');
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -20,7 +21,7 @@ const SolicitarServicio = ({ onClose }) => {
       origen,
       destino,
       tipo_vehiculo: tipoVehiculo,
-      tipo_carga: tipoCarga,
+      tipo_carga: `${tipoCarga} - Tonelaje Aproximado: ${tonelaje}`,
       fecha_solicitud: fechaSolicitud
     };
 
@@ -28,11 +29,12 @@ const SolicitarServicio = ({ onClose }) => {
       await crearSolicitud(data, localStorage.getItem('authToken'));
       setSuccessMessage("Solicitud enviada correctamente. Nuestro equipo la revisará pronto.");
       setError(null);
-      setOrigen(''); 
-      setDestino(''); 
-      setTipoVehiculo(''); 
-      setTipoCarga(''); 
+      setOrigen('');
+      setDestino('');
+      setTipoVehiculo('');
+      setTipoCarga('');
       setFechaSolicitud('');
+      setTonelaje('');
     } catch (err) {
       setError("Hubo un problema al procesar la solicitud. Intente nuevamente.");
       setSuccessMessage(null);
@@ -105,7 +107,19 @@ const SolicitarServicio = ({ onClose }) => {
                 value={tipoCarga}
                 onChange={(e) => setTipoCarga(e.target.value)}
                 required
+                maxLength={500}
                 placeholder="Ej: Material pétreo, sacos de cemento, maquinaria..."
+              />
+            </div>
+
+            <div className="vlc-sol-field full">
+              <label>Tonelaje Aproximado</label>
+              <input
+                type="text"
+                value={tonelaje}
+                onChange={(e) => setTonelaje(e.target.value)}
+                required
+                placeholder="Ej: 10 toneladas"
               />
             </div>
           </div>

@@ -4,7 +4,7 @@ from gestion_vehiculos.models import Vehiculo
 from servicios_transporte.models import SolicitudServicio
 
 class DatasetTurnosIA(models.Model):
-    transportista = models.ForeignKey(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol': 'TRANSP'})
+    transportista = models.ForeignKey(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol__codigo': 'TRANSP'})
     vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE)
     solicitud = models.ForeignKey(SolicitudServicio, on_delete=models.CASCADE)
     fecha_turno = models.DateField()

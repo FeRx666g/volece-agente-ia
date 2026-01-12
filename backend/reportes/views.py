@@ -15,7 +15,7 @@ def reporte_usuarios_preview(request):
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
 
-    qs = Usuario.objects.all()
+    qs = Usuario.objects.filter(is_active=True)
 
     if search:
         qs = qs.filter(
@@ -43,7 +43,8 @@ def reporte_usuarios_preview(request):
     total = qs.count()
     data = [
         {
-            "nombre": f"{u.first_name} {u.last_name}",
+            "first_name": u.first_name,
+            "last_name": u.last_name,
             "cedula": u.cedula_ruc,
             "email": u.email,
         }
@@ -58,7 +59,7 @@ def reporte_solicitudes_preview(request):
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
 
-    qs = SolicitudServicio.objects.select_related('cliente').all()
+    qs = SolicitudServicio.objects.filter(cliente__is_active=True, estado_sistema__codigo='ACTIVO').select_related('cliente')
 
     if search:
         qs = qs.filter(
@@ -90,10 +91,10 @@ def reporte_solicitudes_preview(request):
     total = qs.count()
     data = [
         {
-            "cliente": f"{s.cliente.first_name} {s.cliente.last_name}",
+            "cliente_nombre": f"{s.cliente.first_name} {s.cliente.last_name}",
             "origen": s.origen,
             "destino": s.destino,
-            "estado": s.estado,
+            "estado": s.estado.nombre if s.estado else None,
         }
         for s in qs[:50]
     ]
@@ -106,7 +107,7 @@ def reporte_vehiculos_preview(request):
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
 
-    qs = Vehiculo.objects.select_related('transportista').all()
+    qs = Vehiculo.objects.filter(transportista__is_active=True).select_related('transportista')
 
     if search:
         qs = qs.filter(
@@ -155,7 +156,7 @@ def reporte_usuarios_pdf(request):
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
 
-    qs = Usuario.objects.all()
+    qs = Usuario.objects.filter(is_active=True)
 
     if search:
         qs = qs.filter(
@@ -200,7 +201,7 @@ def reporte_solicitudes_pdf(request):
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
 
-    qs = SolicitudServicio.objects.select_related('cliente').all()
+    qs = SolicitudServicio.objects.filter(cliente__is_active=True, estado_sistema__codigo='ACTIVO').select_related('cliente')
 
     if search:
         qs = qs.filter(
@@ -249,7 +250,7 @@ def reporte_vehiculos_pdf(request):
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
 
-    qs = Vehiculo.objects.select_related('transportista').all()
+    qs = Vehiculo.objects.filter(transportista__is_active=True).select_related('transportista')
 
     if search:
         qs = qs.filter(

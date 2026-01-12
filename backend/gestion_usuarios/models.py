@@ -9,6 +9,11 @@ class UsuarioManager(BaseUserManager):
         if not email:
             raise ValueError('El usuario debe tener un email')
         email = self.normalize_email(email)
+        
+        if isinstance(rol, str):
+            from .models import Rol
+            rol = Rol.objects.get(codigo=rol)
+
         user = self.model(
             username=username,
             email=email,
@@ -46,13 +51,16 @@ class UsuarioManager(BaseUserManager):
             **extra_fields
         )
 
+class Rol(models.Model):
+    codigo = models.CharField(max_length=10, unique=True)
+    nombre = models.CharField(max_length=50)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
 class Usuario(AbstractUser):
-    ROLES = [
-        ('ADMIN', 'Administrador'),
-        ('TRANSP', 'Transportista'),
-        ('CLIENTE', 'Cliente'),
-    ]
-    rol = models.CharField(max_length=10, choices=ROLES, default='CLIENTE')
+    rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
     cedula_ruc = models.CharField(max_length=12, unique=True)
     telefono = models.CharField(max_length=10, blank=True, null=False)
     email = models.EmailField(unique=True) 
@@ -62,4 +70,5 @@ class Usuario(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'cedula_ruc', 'email', 'telefono']
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.get_rol_display()})"
+        rol_name = self.rol.nombre if self.rol else 'Sin Rol'
+        return f"{self.first_name} {self.last_name} ({rol_name})"

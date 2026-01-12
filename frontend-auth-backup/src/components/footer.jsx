@@ -1,7 +1,8 @@
 import React from "react";
 import './footer.css';
 
-export default function Footer() {
+
+export default function Footer({ onContactClick }) {
   return (
     <footer className="vlc-foo-footer">
       <div className="vlc-foo-container">
@@ -11,11 +12,11 @@ export default function Footer() {
               &copy; {new Date().getFullYear()} <strong>VOLECE<span>.CA</span></strong> - Todos los derechos reservados.
             </p>
           </div>
-          
+
           <div className="vlc-foo-links">
             <a href="/privacidad" className="vlc-foo-link">Política de privacidad</a>
             <a href="/terminos" className="vlc-foo-link">Términos y condiciones</a>
-            <a href="#contacto" className="vlc-foo-link">Contacto</a>
+            <button className="vlc-foo-link vlc-foo-btn-link" onClick={onContactClick}>Contacto</button>
           </div>
         </div>
       </div>

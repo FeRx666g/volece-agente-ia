@@ -58,7 +58,9 @@ const Auth = () => {
       const perfilResponse = await axios.get('http://127.0.0.1:8000/api/usuarios/perfil/', {
         headers: { Authorization: `Bearer ${access}` }
       });
-      const { rol } = perfilResponse.data;
+      const { rol, first_name, last_name } = perfilResponse.data;
+      localStorage.setItem('user_name', `${first_name} ${last_name}`);
+      localStorage.setItem('role', rol);
       if (rol === 'ADMIN') navigate('/dashboard-admin');
       else if (rol === 'TRANSP') navigate('/transportista/dashboard');
       else navigate('/cliente/dashboard');

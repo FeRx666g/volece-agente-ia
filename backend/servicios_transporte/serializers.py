@@ -1,7 +1,12 @@
 from rest_framework import serializers
-from .models import SolicitudServicio, PrediccionIA
+from .models import SolicitudServicio, PrediccionIA, EstadoSolicitud, EstadoSistema
 from gestion_transporte.models import DatasetTurnosIA
 from gestion_vehiculos.models import Vehiculo
+
+class EstadoSolicitudSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EstadoSolicitud
+        fields = '__all__'
 
 class SolicitudServicioSerializer(serializers.ModelSerializer):
     cliente_nombre = serializers.SerializerMethodField()
@@ -10,6 +15,9 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
     vehiculo_asignado_placa = serializers.SerializerMethodField()
     comentario_ia_asignado = serializers.SerializerMethodField()
     prediccion_data = serializers.SerializerMethodField()
+    estado = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSolicitud.objects.all())
+    estado_nombre = serializers.ReadOnlyField(source='estado.nombre')
+    estado_sistema = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSistema.objects.all())
 
     class Meta:
         model = SolicitudServicio
@@ -22,6 +30,8 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
             'tipo_carga',
             'fecha_solicitud',
             'estado',
+            'estado_nombre',
+            'estado_sistema',
             'cliente_nombre',
             'transportista_asignado_id',
             'transportista_asignado_nombre',

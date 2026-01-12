@@ -4,8 +4,9 @@ import './estilos/RegistroVehiculo.css';
 
 export default function RegistroVehiculo() {
   const [transportistas, setTransportistas] = useState([]);
+  const [tiposVehiculos, setTiposVehiculos] = useState([]);
   const [formData, setFormData] = useState({
-    transportista: '', tipo: 'VOLQUETA', marca: '', modelo: '',
+    transportista: '', tipo_vehiculo: '', marca: '', modelo: '',
     placa: '', anio: '', color: '', tonelaje: '', combustible: 'DIESEL',
     numero_motor: '', numero_chasis: '', fecha_adquisicion: '',
     observaciones: '', estado: 'ACTIVO',
@@ -15,11 +16,20 @@ export default function RegistroVehiculo() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/usuarios/transportistas/', {
+    const fetchTransportistas = axios.get('http://localhost:8000/api/usuarios/transportistas/', {
       headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
-    })
-    .then(res => setTransportistas(res.data))
-    .catch(err => console.error(err));
+    });
+    const fetchTipos = axios.get('http://localhost:8000/api/vehiculos/tipos/', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
+    });
+
+    Promise.all([fetchTransportistas, fetchTipos])
+      .then(axios.spread((transRes, tiposRes) => {
+        setTransportistas(transRes.data);
+        const tiposData = tiposRes.data.results || tiposRes.data;
+        setTiposVehiculos(Array.isArray(tiposData) ? tiposData : []);
+      }))
+      .catch(err => console.error(err));
   }, []);
 
   const handleChange = e => {
@@ -35,19 +45,11 @@ export default function RegistroVehiculo() {
 
   const validarCampos = () => {
     const nuevosErrores = {};
-    const anioActual = new Date().getFullYear();
-    const anio = parseInt(formData.anio);
     const tonelaje = parseFloat(formData.tonelaje);
 
-    if (!formData.transportista) nuevosErrores.transportista = "Seleccione un socio";
+    if (!formData.tipo_vehiculo) nuevosErrores.tipo_vehiculo = "Seleccione el tipo de vehículo";
     if (!formData.marca) nuevosErrores.marca = "Ingrese la marca";
-    if (!formData.modelo) nuevosErrores.modelo = "Ingrese el modelo";
     if (!formData.placa) nuevosErrores.placa = "Ingrese la placa";
-    if (!formData.color) nuevosErrores.color = "Ingrese el color";
-
-    if (isNaN(anio) || anio < 1990 || anio > anioActual)
-      nuevosErrores.anio = `Rango válido: 1990 - ${anioActual}`;
-
     if (isNaN(tonelaje) || tonelaje <= 3.5 || tonelaje > 50)
       nuevosErrores.tonelaje = "Debe estar entre 3.5 y 50 t";
 
@@ -62,7 +64,10 @@ export default function RegistroVehiculo() {
     const dataToSend = new FormData();
     Object.keys(formData).forEach(key => {
       if (key !== 'foto') {
-        dataToSend.append(key, formData[key]);
+        const val = formData[key];
+        if (val !== '' && val !== null && val !== undefined) {
+          dataToSend.append(key, val);
+        }
       }
     });
 
@@ -71,23 +76,31 @@ export default function RegistroVehiculo() {
     }
 
     axios.post('http://localhost:8000/api/vehiculos/', dataToSend, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${localStorage.getItem('access')}`,
         'Content-Type': 'multipart/form-data'
       }
     })
-    .then(() => {
-      alert('Vehículo registrado exitosamente');
-      setFormData({
-        transportista: '', tipo: 'VOLQUETA', marca: '', modelo: '',
-        placa: '', anio: '', color: '', tonelaje: '', combustible: 'DIESEL',
-        numero_motor: '', numero_chasis: '', fecha_adquisicion: '',
-        observaciones: '', estado: 'ACTIVO',
-        foto: null
+      .then(() => {
+        alert('Vehículo registrado exitosamente');
+        setFormData({
+          transportista: '', tipo_vehiculo: '', marca: '', modelo: '',
+          placa: '', anio: '', color: '', tonelaje: '', combustible: 'DIESEL',
+          numero_motor: '', numero_chasis: '', fecha_adquisicion: '',
+          observaciones: '', estado: 'ACTIVO',
+          foto: null
+        });
+        setErrors({});
+      })
+      .catch(err => {
+        console.error(err);
+        if (err.response && err.response.data && err.response.data.placa) {
+          setErrors(prev => ({ ...prev, placa: 'Esta placa ya se encuentra registrada.' }));
+          alert('Error: La placa ingresada ya existe en el sistema.');
+        } else {
+          alert('Error al registrar el vehículo. Verifique los datos.');
+        }
       });
-      setErrors({});
-    })
-    .catch(() => alert('Error al registrar el vehículo'));
   };
 
   return (
@@ -99,13 +112,13 @@ export default function RegistroVehiculo() {
         </div>
 
         <form className="vlc-reg-form" onSubmit={handleSubmit}>
-          
+
           <div className="vlc-reg-section">
             <h3><span className="vlc-reg-step">1</span> Información de Propiedad</h3>
             <div className="vlc-reg-grid">
               <div className="vlc-reg-group full">
                 <label>Socio Transportista</label>
-                <select name="transportista" value={formData.transportista} onChange={handleChange} required>
+                <select name="transportista" value={formData.transportista} onChange={handleChange}>
                   <option value="">Seleccione un transportista...</option>
                   {transportistas.map(trans => (
                     <option key={trans.id} value={trans.id}>
@@ -122,54 +135,56 @@ export default function RegistroVehiculo() {
             <h3><span className="vlc-reg-step">2</span> Especificaciones Técnicas</h3>
             <div className="vlc-reg-grid">
               <div className="vlc-reg-group">
-                <label>Tipo de Vehículo</label>
-                <select name="tipo" value={formData.tipo} onChange={handleChange} required>
-                  <option value="VOLQUETA">Volqueta</option>
-                  <option value="CAMION">Camión</option>
-                  <option value="TRAILER">Trailer</option>
-                  <option value="FURGON">Furgón</option>
-                  <option value="OTRO">Otro</option>
+                <label>Tipo de Vehículo<span style={{ color: 'red' }}> *</span></label>
+                <select name="tipo_vehiculo" value={formData.tipo_vehiculo} onChange={handleChange} required>
+                  <option value="">Seleccione...</option>
+                  {tiposVehiculos.map(tipo => (
+                    <option key={tipo.id} value={tipo.id}>
+                      {tipo.nombre}
+                    </option>
+                  ))}
                 </select>
+                {errors.tipo_vehiculo && <span className="vlc-reg-error">{errors.tipo_vehiculo}</span>}
               </div>
 
               <div className="vlc-reg-group">
-                <label>Marca</label>
+                <label>Marca<span style={{ color: 'red' }}> *</span></label>
                 <input type="text" name="marca" value={formData.marca} onChange={handleChange} required placeholder="Ej: Hino" />
                 {errors.marca && <span className="vlc-reg-error">{errors.marca}</span>}
               </div>
 
               <div className="vlc-reg-group">
                 <label>Modelo</label>
-                <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} required placeholder="Ej: GH 500" />
+                <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ej: GH 500" />
                 {errors.modelo && <span className="vlc-reg-error">{errors.modelo}</span>}
               </div>
 
               <div className="vlc-reg-group">
-                <label>Placa</label>
+                <label>Placa<span style={{ color: 'red' }}> *</span></label>
                 <input type="text" name="placa" value={formData.placa} onChange={handleChange} required placeholder="ABC-1234" />
                 {errors.placa && <span className="vlc-reg-error">{errors.placa}</span>}
               </div>
 
               <div className="vlc-reg-group">
                 <label>Año de Fabricación</label>
-                <input type="number" name="anio" value={formData.anio} onChange={handleChange} required />
+                <input type="number" name="anio" value={formData.anio} onChange={handleChange} />
                 {errors.anio && <span className="vlc-reg-error">{errors.anio}</span>}
               </div>
 
               <div className="vlc-reg-group">
                 <label>Color</label>
-                <input type="text" name="color" value={formData.color} onChange={handleChange} required />
+                <input type="text" name="color" value={formData.color} onChange={handleChange} />
                 {errors.color && <span className="vlc-reg-error">{errors.color}</span>}
               </div>
 
               <div className="vlc-reg-group">
-                <label>Tonelaje (t)</label>
+                <label>Tonelaje (t)<span style={{ color: 'red' }}> *</span></label>
                 <input type="number" step="0.01" name="tonelaje" value={formData.tonelaje} onChange={handleChange} required />
                 {errors.tonelaje && <span className="vlc-reg-error">{errors.tonelaje}</span>}
               </div>
 
               <div className="vlc-reg-group">
-                <label>Tipo de Combustible</label>
+                <label>Tipo de Combustible<span style={{ color: 'red' }}> *</span></label>
                 <select name="combustible" value={formData.combustible} onChange={handleChange} required>
                   <option value="DIESEL">Diesel</option>
                   <option value="GASOLINA">Gasolina</option>
@@ -179,13 +194,13 @@ export default function RegistroVehiculo() {
               </div>
 
               <div className="vlc-reg-group full">
-                 <label>Fotografía del Vehículo</label>
-                 <input 
-                    type="file" 
-                    name="foto" 
-                    accept="image/*"
-                    onChange={handleFileChange} 
-                 />
+                <label>Fotografía del Vehículo</label>
+                <input
+                  type="file"
+                  name="foto"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
               </div>
             </div>
           </div>

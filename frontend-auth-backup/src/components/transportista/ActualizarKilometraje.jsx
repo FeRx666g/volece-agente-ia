@@ -19,7 +19,7 @@ export default function ActualizarKilometraje({ onKilometrajeActualizado }) {
       const response = await axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const lista = Array.isArray(response.data) ? response.data : [response.data];
       setVehiculos(lista);
 
@@ -50,7 +50,7 @@ export default function ActualizarKilometraje({ onKilometrajeActualizado }) {
       );
       alert('Kilometraje actualizado exitosamente.');
       setKilometraje('');
-      obtenerVehiculos(); 
+      obtenerVehiculos();
       if (onKilometrajeActualizado) onKilometrajeActualizado();
     } catch (error) {
       alert('Error al actualizar kilometraje.');
@@ -69,19 +69,24 @@ export default function ActualizarKilometraje({ onKilometrajeActualizado }) {
         </div>
 
         <form className="vlc-km-form" onSubmit={handleSubmit}>
-          
+
           <div className="vlc-km-field">
             <label>Seleccionar Unidad</label>
-            <select 
-              value={vehiculoId} 
+            <select
+              value={vehiculoId}
               onChange={(e) => setVehiculoId(e.target.value)}
               className="vlc-km-select"
+              disabled={vehiculos.length === 0}
             >
-              {vehiculos.map(v => (
-                <option key={v.id} value={v.id}>
-                  {v.placa} - {v.modelo}
-                </option>
-              ))}
+              {vehiculos.length === 0 ? (
+                <option value="">No tiene unidades asociadas</option>
+              ) : (
+                vehiculos.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.placa} - {v.modelo}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -96,9 +101,9 @@ export default function ActualizarKilometraje({ onKilometrajeActualizado }) {
               min={vehiculoSeleccionado ? vehiculoSeleccionado.kilometraje_actual : 0}
             />
             {vehiculoSeleccionado && (
-                <div style={{marginTop: '8px', fontSize: '0.85rem', color: '#64748b'}}>
-                    Actual registrado: <strong>{vehiculoSeleccionado.kilometraje_actual} km</strong>
-                </div>
+              <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#64748b' }}>
+                Actual registrado: <strong>{vehiculoSeleccionado.kilometraje_actual} km</strong>
+              </div>
             )}
           </div>
 

@@ -54,7 +54,7 @@
                 <td>{{ u.cedula_ruc }}</td>
                 <td><strong>{{ u.last_name }} {{ u.first_name }}</strong></td>
                 <td>{{ u.email }}</td>
-                <td><span class="role-tag">{{ u.get_rol_display }}</span></td>
+                <td><span class="role-tag">{{ u.rol.nombre }}</span></td>
             </tr>
             {% endfor %}
         </tbody>

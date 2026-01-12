@@ -1,47 +1,42 @@
-/* ESTILOS DEL NAVBAR */
-/* --- NAVBAR GENERAL --- */
-
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 8rem; /* Aumentamos el padding para duplicar la altura del navbar */
+  padding: 2rem 8rem;
   background-color: #279200;
   position: sticky;
   top: 0;
   z-index: 1000;
-  width: 100%; /* Aseguramos que el navbar ocupe todo el ancho disponible */
+  width: 100%;
   box-sizing: border-box;
-  height: 120px; /* Doblamos la altura (ajustamos esta propiedad si es necesario) */
+  height: 120px;
 }
 
-/* Alineación de los elementos a la izquierda */
 .navbar-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 100%; /* Aseguramos que ocupe toda la altura disponible */
+  height: 100%;
 }
 
 .navbar-img {
-  width: 70px; /* Aumentamos el tamaño del logo */
+  width: 70px;
   height: 70px;
   object-fit: cover;
 }
 
 .navbar-title {
-  font-size: 1.8rem; /* Aumentamos el tamaño del título */
+  font-size: 1.8rem;
   font-weight: bold;
   color: white;
 }
 
-/* --- LINKS --- */
 .navbar-links {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   transition: transform 0.4s ease, opacity 0.4s ease;
-  height: 100%; /* Aseguramos que la altura de los enlaces sea la misma que la navbar */
+  height: 100%;
 }
 
 .navbar-links ul {
@@ -50,7 +45,7 @@
   gap: 2rem;
   margin: 0;
   padding: 0;
-  height: 100%; /* Aseguramos que la lista de enlaces ocupe toda la altura del navbar */
+  height: 100%;
 }
 
 .navbar-links a {
@@ -60,16 +55,15 @@
   font-size: 1.1rem;
   transition: color 0.3s ease;
   display: flex;
-  align-items: center; /* Alineamos verticalmente los enlaces */
-  height: 100%; /* Aseguramos que los enlaces ocupen toda la altura disponible */
-  padding: 0 10px; /* Agregamos padding para que los enlaces tengan un mejor espacio */
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
 }
 
 .navbar-links a:hover {
   color: #f1f1f1;
 }
 
-/* --- SUBMENÚ "NOSOTROS" --- */
 .dropdown {
   position: relative;
 }
@@ -83,12 +77,12 @@
   cursor: pointer;
   font-weight: 500;
   display: flex;
-  align-items: center; /* Alineamos verticalmente el botón */
-  height: 100%; /* Aseguramos que el botón ocupe toda la altura */
+  align-items: center;
+  height: 100%;
 }
 
 .dropbtn:hover {
-  background-color: #45a049; /* Cambiamos el hover a un verde más claro */
+  background-color: #45a049;
 }
 
 .dropdown-content {
@@ -119,7 +113,6 @@
   color: white;
 }
 
-/* --- MENU HAMBURGUESA --- */
 .menu-toggle {
   display: none;
   font-size: 2rem;
@@ -127,7 +120,6 @@
   color: black;
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -157,7 +149,7 @@
     flex-direction: column;
     gap: 2rem;
     margin-top: 3rem;
-    height: auto; /* Ajustamos la altura cuando el menú está en modo hamburguesa */
+    height: auto;
   }
 
   .navbar-left {
@@ -174,21 +166,16 @@
   }
 }
 
-/* Overlay para el menú */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+  background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
 
-
-
-
-/*ESTILOS DEL FOOTER*/
 .footer {
   background-color: #279200;
   padding: 1.5rem 2rem;
@@ -224,8 +211,6 @@
   text-decoration: underline;
 }
 
-
-/* Contenedor general del slider */
 .image-slider {
   position: relative;
   width: calc(80% + 10px);
@@ -236,14 +221,12 @@
   background-color: #000;
 }
 
-/* Contenedor que almacena todas las imágenes */
 .slider-image-container {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-/* Cada imagen del slider */
 .slider-image {
   position: absolute;
   top: 0;
@@ -266,7 +249,6 @@
   z-index: 1;
 }
 
-/* Capa de superposición oscura */
 .slider-overlay {
   position: absolute;
   top: 0;
@@ -278,7 +260,6 @@
   border-radius: 10px;
 }
 
-/* Texto sobre la imagen */
 .slider-text {
   position: relative;
   z-index: 2;
@@ -290,7 +271,6 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-/* Botones de navegación */
 .slider-controls {
   position: absolute;
   top: 50%;
@@ -329,7 +309,6 @@
   right: 10px;
 }
 
-/* Responsividad mejorada */
 @media (max-width: 768px) {
   .slider-text {
     font-size: 1.2rem;

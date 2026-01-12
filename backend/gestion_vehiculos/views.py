@@ -1,13 +1,19 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Vehiculo, Mantenimiento
-from .serializer import VehiculoSerializer, VehiculoTransportistaSerializer, MantenimientoSerializer
+from .models import Vehiculo, Mantenimiento, TipoVehiculo
+from .serializer import VehiculoSerializer, VehiculoTransportistaSerializer, MantenimientoSerializer, TipoVehiculoSerializer
+from gestion_usuarios.permissions import IsAdminRol
+
+class TipoVehiculoViewSet(viewsets.ModelViewSet):
+    queryset = TipoVehiculo.objects.all()
+    serializer_class = TipoVehiculoSerializer
+    permission_classes = [permissions.IsAuthenticated] 
 
 class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminRol]
 
 class VehiculoTransportistaView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -57,21 +63,18 @@ class MantenimientoTransportistaView(APIView):
         except Vehiculo.MultipleObjectsReturned:
             return Response({'error': 'Múltiples vehículos encontrados, especifique uno'}, status=400)
 
-        # --- CORRECCIÓN FECHA Y ACTUALIZACIÓN KM ---
         fecha = request.data.get('fecha_mantenimiento')
         km_ingresado = int(request.data.get('kilometraje_actual'))
 
-        # Crear el registro de mantenimiento
         Mantenimiento.objects.create(
             vehiculo=vehiculo,
             tipo=request.data.get('tipo'),
             kilometraje_actual=km_ingresado,
             kilometraje_proximo=request.data.get('kilometraje_proximo'),
             observaciones=request.data.get('observaciones'),
-            fecha_mantenimiento=fecha  # Guardamos la fecha enviada
+            fecha_mantenimiento=fecha
         )
 
-        # Actualizar el kilometraje del vehículo si el nuevo es mayor
         if km_ingresado > vehiculo.kilometraje_actual:
             vehiculo.kilometraje_actual = km_ingresado
             vehiculo.save()

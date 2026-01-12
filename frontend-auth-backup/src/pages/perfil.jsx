@@ -16,14 +16,13 @@ export default function Perfil() {
         .then((res) => {
           setPerfil(res.data);
 
-          // Aquí evaluamos el rol
           if (res.data.rol === "ADMIN") {
-            navigate("/dashboard-admin"); // Redirecciona al dashboard de admin
+            navigate("/dashboard-admin");
           }
         })
         .catch(() => {
           alert("Token inválido o expirado");
-          navigate("/login"); // Si hay error, volver al login
+          navigate("/login");
         });
     } else {
       navigate("/login");

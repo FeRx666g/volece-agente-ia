@@ -4,15 +4,15 @@ import './MantenimientoForm.css';
 
 export default function MantenimientoForm({ onMantenimientoRegistrado }) {
   const [vehiculos, setVehiculos] = useState([]);
-  
+
   const [tipo, setTipo] = useState('CAMBIO_ACEITE');
   const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [kilometrajeProximo, setKilometrajeProximo] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
-  
+
   const [loading, setLoading] = useState(false);
-  const [kmBase, setKmBase] = useState(0); 
+  const [kmBase, setKmBase] = useState(0);
   const [vehiculoId, setVehiculoId] = useState('');
 
   const tiposMantenimiento = [
@@ -34,11 +34,11 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
 
   useEffect(() => {
     if (vehiculoId && vehiculos.length > 0) {
-        const vehiculo = vehiculos.find(v => v.id == vehiculoId);
-        if (vehiculo) {
-            setKmBase(vehiculo.kilometraje_actual);
-            setKilometrajeActual(vehiculo.kilometraje_actual);
-        }
+      const vehiculo = vehiculos.find(v => v.id == vehiculoId);
+      if (vehiculo) {
+        setKmBase(vehiculo.kilometraje_actual);
+        setKilometrajeActual(vehiculo.kilometraje_actual);
+      }
     }
   }, [vehiculoId, vehiculos]);
 
@@ -47,7 +47,7 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
       const response = await axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const lista = Array.isArray(response.data) ? response.data : [response.data];
       setVehiculos(lista);
 
@@ -65,8 +65,8 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
     const kmProximo = parseInt(kilometrajeProximo);
 
     if (!vehiculoId) {
-        alert('Por favor seleccione un vehículo.');
-        return;
+      alert('Por favor seleccione un vehículo.');
+      return;
     }
 
     if (kmActual < kmBase) {
@@ -87,23 +87,23 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
           tipo,
           kilometraje_actual: kmActual,
           kilometraje_proximo: kmProximo,
-          fecha_mantenimiento: fecha, 
+          fecha_mantenimiento: fecha,
           observaciones,
           vehiculo: vehiculoId
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Mantenimiento registrado exitosamente.');
-      
+
       setTipo('CAMBIO_ACEITE');
       setKilometrajeActual('');
       setKilometrajeProximo('');
       setObservaciones('');
       setFecha(new Date().toISOString().split('T')[0]);
-      
-      obtenerVehiculos(); 
-      
+
+      obtenerVehiculos();
+
       if (onMantenimientoRegistrado) onMantenimientoRegistrado();
     } catch (error) {
       console.error(error);
@@ -121,40 +121,45 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
         </div>
 
         <div className="vlc-mnt-body">
-          
+
           <div className="vlc-mnt-field">
             <label>Seleccionar Unidad</label>
-            <select 
-                value={vehiculoId} 
-                onChange={(e) => setVehiculoId(e.target.value)} 
-                required
+            <select
+              value={vehiculoId}
+              onChange={(e) => setVehiculoId(e.target.value)}
+              required
+              disabled={vehiculos.length === 0}
             >
-              {vehiculos.map(v => (
-                <option key={v.id} value={v.id}>
-                  {v.placa} - {v.modelo}
-                </option>
-              ))}
+              {vehiculos.length === 0 ? (
+                <option value="">No tiene unidades asociadas</option>
+              ) : (
+                vehiculos.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.placa} - {v.modelo}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
           <div className="vlc-mnt-grid">
             <div className="vlc-mnt-field">
-                <label>Tipo de Servicio</label>
-                <select value={tipo} onChange={e => setTipo(e.target.value)}>
+              <label>Tipo de Servicio</label>
+              <select value={tipo} onChange={e => setTipo(e.target.value)}>
                 {tiposMantenimiento.map(op => (
-                    <option key={op.value} value={op.value}>{op.label}</option>
+                  <option key={op.value} value={op.value}>{op.label}</option>
                 ))}
-                </select>
+              </select>
             </div>
 
             <div className="vlc-mnt-field">
-                <label>Fecha del Servicio</label>
-                <input 
-                    type="date" 
-                    value={fecha} 
-                    onChange={e => setFecha(e.target.value)} 
-                    required 
-                />
+              <label>Fecha del Servicio</label>
+              <input
+                type="date"
+                value={fecha}
+                onChange={e => setFecha(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -169,7 +174,7 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
                 placeholder="Ingrese nuevo KM"
               />
               <small style={{ color: '#64748b', marginTop: '4px', display: 'block', fontSize: '0.8rem' }}>
-                 Último registrado: <strong>{kmBase.toLocaleString()} km</strong>
+                Último registrado: <strong>{kmBase.toLocaleString()} km</strong>
               </small>
             </div>
 

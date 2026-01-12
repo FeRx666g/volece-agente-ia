@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { obtenerSolicitudesCliente } from '../../../Servicios/SolicitudServicio'; 
+import { obtenerSolicitudesCliente } from '../../../Servicios/SolicitudServicio';
 
 const SolicitudesList = () => {
     const [solicitudes, setSolicitudes] = useState([]);
@@ -8,7 +8,7 @@ const SolicitudesList = () => {
     useEffect(() => {
         const fetchSolicitudes = async () => {
             try {
-                const data = await obtenerSolicitudesCliente(localStorage.getItem('authToken'));  
+                const data = await obtenerSolicitudesCliente(localStorage.getItem('authToken'));
                 setSolicitudes(data);
             } catch (err) {
                 setError("Error al cargar solicitudes");
@@ -26,7 +26,7 @@ const SolicitudesList = () => {
                 {solicitudes.length > 0 ? (
                     solicitudes.map((solicitud) => (
                         <li key={solicitud.id}>
-                            {solicitud.origen} → {solicitud.destino} - Estado: {solicitud.estado}
+                            {solicitud.origen} → {solicitud.destino} - Estado: {solicitud.estado_nombre || solicitud.estado}
                         </li>
                     ))
                 ) : (

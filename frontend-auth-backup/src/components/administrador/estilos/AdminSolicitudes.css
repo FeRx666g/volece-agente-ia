@@ -128,6 +128,16 @@
   color: #991b1b;
 }
 
+.vlc-sol-tag.completado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.vlc-sol-tag.cancelado {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
 .vlc-sol-select {
   width: 100%;
   padding: 6px 10px;

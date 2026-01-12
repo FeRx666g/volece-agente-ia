@@ -127,17 +127,14 @@
   }
 }
 
-/* ... Tus variables y estilos previos ... */
-
-/* Modificamos el header para usar Flexbox y separar título del botón */
 .vlc-hmn-header {
   padding: 1.5rem 2rem;
   background-color: #fafbfc;
   border-bottom: 2px solid var(--vlc-hmn-border);
-  display: flex; /* Nuevo */
-  justify-content: space-between; /* Nuevo */
-  align-items: center; /* Nuevo */
-  flex-wrap: wrap; /* Para móviles */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -154,9 +151,8 @@
   margin: 0;
 }
 
-/* Estilos del Botón PDF */
 .vlc-hmn-btn-pdf {
-  background-color: #dc2626; /* Color rojo PDF */
+  background-color: #dc2626;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -180,7 +176,6 @@
   transform: translateY(0);
 }
 
-/* Ajuste Mobile */
 @media (max-width: 768px) {
   .vlc-hmn-header {
     flex-direction: column;
@@ -192,8 +187,6 @@
     justify-content: center;
   }
 }
-
-/* ... Tus estilos anteriores ... */
 
 .vlc-hmn-actions {
     display: flex;
@@ -261,7 +254,6 @@
     transform: translateY(-1px);
 }
 
-/* Ajuste responsive para móviles */
 @media (max-width: 768px) {
     .vlc-hmn-header {
         flex-direction: column;

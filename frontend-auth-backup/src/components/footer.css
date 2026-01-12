@@ -86,13 +86,46 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .vlc-foo-links {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .vlc-foo-footer {
     padding: 2rem 0;
   }
+}
+
+.vlc-foo-btn-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: var(--vlc-foo-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.vlc-foo-btn-link:hover {
+  color: var(--vlc-foo-white);
+}
+
+.vlc-foo-btn-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: var(--vlc-foo-primary);
+  transition: width 0.3s ease;
+}
+
+.vlc-foo-btn-link:hover::after {
+  width: 100%;
 }

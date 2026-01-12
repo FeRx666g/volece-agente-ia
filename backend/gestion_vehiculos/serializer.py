@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Vehiculo, Mantenimiento
+from .models import Vehiculo, Mantenimiento, TipoVehiculo
 from gestion_usuarios.models import Usuario
+
+class TipoVehiculoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoVehiculo
+        fields = '__all__'
 
 class TransportistaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,6 +19,7 @@ class VehiculoSerializer(serializers.ModelSerializer):
     )
 
     transportista_detalle = TransportistaSerializer(source='transportista', read_only=True)
+    tipo_nombre = serializers.ReadOnlyField(source='tipo_vehiculo.nombre')
 
     class Meta:
         model = Vehiculo

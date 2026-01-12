@@ -1,15 +1,13 @@
-from rest_framework import generics
-from .models import Usuario
-from .serializers import UsuarioSerializer
+from rest_framework import generics, viewsets
+from .models import Usuario, Rol
+from .serializers import UsuarioSerializer, RolSerializer
 from gestion_usuarios.serializers import UsuarioEdicionAdminSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
-from gestion_usuarios.models import Usuario
-from gestion_usuarios.serializers import UsuarioSerializer
-# recuperación de contraseña
+from rest_framework.generics import ListAPIView
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -17,13 +15,14 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import AllowAny
-#lista de transportistas
+from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 
-
+class RolViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Rol.objects.all()
+    serializer_class = RolSerializer
+    permission_classes = [IsAuthenticated]
 
 class RegistroUsuarioView(generics.CreateAPIView):
     queryset = Usuario.objects.all()
@@ -44,7 +43,7 @@ class CrearUsuarioPrivadoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if request.user.rol != 'ADMIN':
+        if not request.user.rol or request.user.rol.codigo != 'ADMIN':
             return Response({'detail': 'No autorizado. Solo administradores pueden crear usuarios.'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = UsuarioSerializer(data=request.data, context={'request': request})
@@ -62,20 +61,51 @@ class PerfilUsuarioView(APIView):
         serializer = UsuarioSerializer(request.user)
         return Response(serializer.data)
 
-# Listar usuarios
+    def patch(self, request):
+        usuario = request.user
+        serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CambiarPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response({'error': 'Todos los campos son obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({'error': 'La contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validación básica de longitud (puedes ampliarla)
+        if len(new_password) < 6:
+            return Response({'error': 'La nueva contraseña debe tener al menos 6 caracteres.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
+
 class ListarUsuariosView(ListAPIView):
-    queryset = Usuario.objects.all()
+    queryset = Usuario.objects.filter(is_active=True).order_by('-id')
     serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated]
     
 
-# Eliminar usuario
 class EliminarUsuarioView(generics.DestroyAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated]
 
-# Editar usuario
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
+
 class EditarUsuarioView(generics.UpdateAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioEdicionAdminSerializer
@@ -85,12 +115,12 @@ class EditarUsuarioView(generics.UpdateAPIView):
         return self.get_queryset().get(id=self.kwargs["pk"])
 
     def update(self, request, *args, **kwargs):
-        if request.user.rol != 'ADMIN':
+        if not request.user.rol or request.user.rol.codigo != 'ADMIN':
             return Response({'detail': 'No autorizado. Solo administradores pueden editar usuarios.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
 
-# recuperación de contraseña 
+ 
 
 
 class SolicitarRecuperacionPasswordView(APIView):
@@ -123,9 +153,6 @@ class SolicitarRecuperacionPasswordView(APIView):
 
 
 
-# Restablecer contraseña
-Usuario = get_user_model()
-
 class RestablecerPasswordView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -150,14 +177,12 @@ class RestablecerPasswordView(APIView):
 
         return Response({'message': 'Contraseña restablecida correctamente.'}, status=status.HTTP_200_OK)
 
-#Lista de transportistas
-
 class ListaTransportistas(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         Usuario = get_user_model()
-        transportistas = Usuario.objects.filter(rol='TRANSP')
+        transportistas = Usuario.objects.filter(rol__codigo='TRANSP', is_active=True)
         data = [
             {
                 'id': user.id,

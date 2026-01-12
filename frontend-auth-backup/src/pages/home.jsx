@@ -155,7 +155,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <Footer />
+      <Footer onContactClick={() => setShowContactModal(true)} />
     </div>
   );
 }

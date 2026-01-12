@@ -12,7 +12,11 @@ export default function TransportistaDashboard() {
   const [vehiculoActual, setVehiculoActual] = useState(null);
   const [alertas, setAlertas] = useState([]);
   const [asignaciones, setAsignaciones] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('vehiculo');
+
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
 
   const token = localStorage.getItem('access');
   const BASE_URL = 'http://127.0.0.1:8000';
@@ -35,6 +39,8 @@ export default function TransportistaDashboard() {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +63,7 @@ export default function TransportistaDashboard() {
       const listaViajes = response.data.results || response.data;
       setAsignaciones(Array.isArray(listaViajes) ? listaViajes : []);
     } catch (error) {
-      setAsignaciones([]); 
+      setAsignaciones([]);
     }
   };
 
@@ -77,8 +83,22 @@ export default function TransportistaDashboard() {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = '/login'; 
+    window.location.href = '/login';
   };
+
+  const asignacionesFiltradas = asignaciones.filter(turno => {
+    if (!fechaInicio && !fechaFin) return true;
+    const fechaTurno = new Date(turno.fecha_turno);
+    const inicio = fechaInicio ? new Date(fechaInicio) : null;
+    const fin = fechaFin ? new Date(fechaFin) : null;
+
+    if (inicio && fechaTurno < inicio) return false;
+    if (fin) {
+      fin.setHours(23, 59, 59);
+      if (fechaTurno > fin) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="vlc-tra-wrapper">
@@ -126,22 +146,26 @@ export default function TransportistaDashboard() {
             <div className="vlc-tra-fade-in">
               {listaVehiculos.length > 1 && (
                 <div className="vlc-tra-selector">
-                    <p>Seleccione unidad:</p>
-                    <div className="vlc-tra-selector-list">
-                        {listaVehiculos.map(v => (
-                            <button 
-                                key={v.id} 
-                                className={`vlc-tra-sel-btn ${vehiculoActual?.id === v.id ? 'active' : ''}`}
-                                onClick={() => setVehiculoActual(v)}
-                            >
-                                {v.placa} - {v.modelo}
-                            </button>
-                        ))}
-                    </div>
+                  <p>Seleccione unidad:</p>
+                  <div className="vlc-tra-selector-list">
+                    {listaVehiculos.map(v => (
+                      <button
+                        key={v.id}
+                        className={`vlc-tra-sel-btn ${vehiculoActual?.id === v.id ? 'active' : ''}`}
+                        onClick={() => setVehiculoActual(v)}
+                      >
+                        {v.placa} - {v.modelo}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {vehiculoActual ? (
+              {loading ? (
+                <div className="vlc-tra-loading-container">
+                  <p className="vlc-tra-loading">Cargando datos...</p>
+                </div>
+              ) : vehiculoActual ? (
                 <div className="vlc-tra-card-info">
                   <div className="vlc-tra-card-header">
                     <h3>Información de la Unidad</h3>
@@ -149,32 +173,32 @@ export default function TransportistaDashboard() {
                   </div>
 
                   <div className="vlc-tra-detail-layout">
-                      <div className="vlc-tra-photo-container">
-                          {vehiculoActual.foto ? (
-                              <img 
-                                src={`${BASE_URL}${vehiculoActual.foto}`} 
-                                alt="Foto Vehículo" 
-                                className="vlc-tra-vehiculo-img"
-                              />
-                          ) : (
-                              <div className="vlc-tra-no-photo">
-                                  <CIcon icon={cilTruck} size="3xl"/>
-                                  <p>Sin foto</p>
-                              </div>
-                          )}
-                      </div>
+                    <div className="vlc-tra-photo-container">
+                      {vehiculoActual.foto ? (
+                        <img
+                          src={`${BASE_URL}${vehiculoActual.foto}`}
+                          alt="Foto Vehículo"
+                          className="vlc-tra-vehiculo-img"
+                        />
+                      ) : (
+                        <div className="vlc-tra-no-photo">
+                          <CIcon icon={cilTruck} size="3xl" />
+                          <p>Sin foto</p>
+                        </div>
+                      )}
+                    </div>
 
-                      <div className="vlc-tra-info-grid">
-                        <div className="vlc-tra-info-item"><strong>Placa:</strong> <span>{vehiculoActual.placa}</span></div>
-                        <div className="vlc-tra-info-item"><strong>Marca:</strong> <span>{vehiculoActual.marca}</span></div>
-                        <div className="vlc-tra-info-item"><strong>Modelo:</strong> <span>{vehiculoActual.modelo}</span></div>
-                        <div className="vlc-tra-info-item"><strong>Año:</strong> <span>{vehiculoActual.anio}</span></div>
-                        <div className="vlc-tra-info-item"><strong>Color:</strong> <span>{vehiculoActual.color}</span></div>
-                        <div className="vlc-tra-info-item"><strong>Tonelaje:</strong> <span>{vehiculoActual.tonelaje} t</span></div>
-                        <div className="vlc-tra-info-item"><strong>Combustible:</strong> <span>{vehiculoActual.combustible}</span></div>
-                      </div>
+                    <div className="vlc-tra-info-grid">
+                      <div className="vlc-tra-info-item"><strong>Placa:</strong> <span>{vehiculoActual.placa}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Marca:</strong> <span>{vehiculoActual.marca}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Modelo:</strong> <span>{vehiculoActual.modelo}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Año:</strong> <span>{vehiculoActual.anio}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Color:</strong> <span>{vehiculoActual.color}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Tonelaje:</strong> <span>{vehiculoActual.tonelaje} t</span></div>
+                      <div className="vlc-tra-info-item"><strong>Combustible:</strong> <span>{vehiculoActual.combustible}</span></div>
+                    </div>
                   </div>
-                  
+
                   <div className="vlc-tra-state-actions">
                     <p>Actualizar estado operativo:</p>
                     <div className="vlc-tra-btn-group">
@@ -184,7 +208,13 @@ export default function TransportistaDashboard() {
                     </div>
                   </div>
                 </div>
-              ) : <p className="vlc-tra-loading">Cargando datos...</p>}
+              ) : (
+                <div className="vlc-tra-no-data">
+                  <CIcon icon={cilTruck} size="4xl" style={{ color: '#ccc', marginBottom: '15px' }} />
+                  <h3>No tiene unidades asociadas</h3>
+                  <p>Contacte al administrador para registrar su vehículo.</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -196,6 +226,37 @@ export default function TransportistaDashboard() {
             <div className="vlc-tra-fade-in">
               <div className="vlc-tra-card">
                 <h3>Mis Viajes Asignados</h3>
+
+                <div className="vlc-tra-filters" style={{ display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '5px' }}>Fecha Inicio:</label>
+                    <input
+                      type="date"
+                      value={fechaInicio}
+                      onChange={(e) => setFechaInicio(e.target.value)}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '5px' }}>Fecha Fin:</label>
+                    <input
+                      type="date"
+                      value={fechaFin}
+                      min={fechaInicio}
+                      onChange={(e) => setFechaFin(e.target.value)}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                  {(fechaInicio || fechaFin) && (
+                    <button
+                      onClick={() => { setFechaInicio(""); setFechaFin(""); }}
+                      style={{ alignSelf: 'flex-end', padding: '8px 15px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#475569', fontWeight: 'bold' }}
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+
                 <div className="vlc-tra-table-wrapper">
                   <table className="vlc-tra-table">
                     <thead>
@@ -210,20 +271,20 @@ export default function TransportistaDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {asignaciones.length === 0 ? (
-                        <tr><td colSpan="7" className="vlc-tra-empty">No hay viajes registrados</td></tr>
+                      {asignacionesFiltradas.length === 0 ? (
+                        <tr><td colSpan="7" className="vlc-tra-empty">No se encontraron viajes en este rango</td></tr>
                       ) : (
-                        asignaciones.map((turno) => (
+                        asignacionesFiltradas.map((turno) => (
                           <tr key={turno.id}>
                             <td>#{turno.id}</td>
                             <td>{turno.fecha_turno}</td>
-                            
-                            <td style={{fontWeight: 'bold', color: '#279200'}}>
-                                {turno.vehiculo_data ? (
-                                    <span>{turno.vehiculo_data.placa}</span>
-                                ) : (
-                                    <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Sin Asignar</span>
-                                )}
+
+                            <td style={{ fontWeight: 'bold', color: '#279200' }}>
+                              {turno.vehiculo_data ? (
+                                <span>{turno.vehiculo_data.placa}</span>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin Asignar</span>
+                              )}
                             </td>
 
                             <td>

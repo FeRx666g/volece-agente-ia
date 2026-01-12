@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <style>
@@ -77,6 +78,9 @@
             padding: 7px;
             border-bottom: 1px solid #eee;
             vertical-align: middle;
+            word-wrap: break-word;
+            /* Prevent overflow */
+            word-break: break-all;
         }
 
         .row-even {
@@ -94,6 +98,7 @@
         }
     </style>
 </head>
+
 <body>
     <table class="header-table">
         <tr>
@@ -139,11 +144,12 @@
                     {{ s.tipo_carga }}<br>
                     <span style="color: #666; font-size: 8px;">Vehículo: {{ s.tipo_vehiculo }}</span>
                 </td>
-                <td class="status-badge">{{ s.get_estado_display }}</td>
+                <td class="status-badge">{{ s.estado.nombre|default:"-" }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">No se encontraron solicitudes con los filtros aplicados.</td>
+                <td colspan="6" style="text-align: center; padding: 20px;">No se encontraron solicitudes con los filtros
+                    aplicados.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -153,4 +159,5 @@
         Página <pdf:pagenumber> de <pdf:pagecount> | Generado automáticamente por VOLECE C.A.
     </div>
 </body>
+
 </html>

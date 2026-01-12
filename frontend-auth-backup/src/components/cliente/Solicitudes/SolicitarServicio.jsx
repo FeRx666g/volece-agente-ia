@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { crearSolicitud } from '../../../Servicios/SolicitudServicio';
 import './estilosSolicitudes.css';
 
@@ -6,11 +7,23 @@ const SolicitarServicio = ({ onClose }) => {
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
   const [tipoVehiculo, setTipoVehiculo] = useState('');
+  const [tiposVehiculos, setTiposVehiculos] = useState([]);
   const [tipoCarga, setTipoCarga] = useState('');
   const [tonelaje, setTonelaje] = useState('');
   const [fechaSolicitud, setFechaSolicitud] = useState('');
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/vehiculos/tipos/', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
+    })
+      .then(res => {
+        if (Array.isArray(res.data)) setTiposVehiculos(res.data);
+        else if (res.data.results) setTiposVehiculos(res.data.results);
+      })
+      .catch(console.error);
+  }, []);
 
   const fechaActual = new Date();
   const hoy = new Date(fechaActual.getTime() - (fechaActual.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
@@ -81,11 +94,9 @@ const SolicitarServicio = ({ onClose }) => {
                 required
               >
                 <option value="">Seleccione...</option>
-                <option value="Volqueta">Volqueta</option>
-                <option value="Camión">Camión</option>
-                <option value="Trailer">Trailer</option>
-                <option value="Furgón">Furgón</option>
-                <option value="Otro">Otro</option>
+                {tiposVehiculos.map(tipo => (
+                  <option key={tipo.id} value={tipo.nombre}>{tipo.nombre}</option>
+                ))}
               </select>
             </div>
 

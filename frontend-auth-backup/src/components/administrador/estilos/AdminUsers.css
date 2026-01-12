@@ -1,6 +1,6 @@
 :root {
   --vlc-green-dark: #166534;
-  --vlc-green-mid: #256d39; /* Este es el verde que usaremos para el header */
+  --vlc-green-mid: #256d39; 
   --vlc-green-accent: #22c55e;
   --vlc-bg-body: #ffffff;
   --vlc-text-main: #2d3436;
@@ -23,7 +23,6 @@
   margin-bottom: 1rem;
 }
 
-/* BOTÓN CREAR */
 .vlc-usr-btn-add {
   background-color: var(--vlc-green-mid);
   color: white;
@@ -42,7 +41,6 @@
   background-color: var(--vlc-green-dark);
 }
 
-/* TABLA PROFESIONAL */
 .vlc-usr-table-wrapper {
   background: white;
   border-radius: 12px;
@@ -56,16 +54,15 @@
   border-collapse: collapse;
 }
 
-/* CAMBIO AQUÍ: Encabezados verdes con texto blanco */
 .vlc-usr-table th {
-  background-color: var(--vlc-green-mid); /* Usamos el verde corporativo medio */
-  color: white; /* Texto blanco para contraste */
+  background-color: var(--vlc-green-mid); 
+  color: white; 
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.8rem; /* Un poco más grande para leer mejor sobre fondo oscuro */
+  font-size: 0.8rem;
   padding: 15px;
   text-align: left;
-  border-bottom: none; /* Quitamos el borde inferior ya que el fondo sólido delimita */
+  border-bottom: none;
 }
 
 .vlc-usr-table td {
@@ -76,10 +73,9 @@
 }
 
 .vlc-usr-table tr:hover {
-  background-color: #f0fdf4; /* Un verde muy, muy suave al pasar el mouse para combinar */
+  background-color: #f0fdf4;
 }
 
-/* TAGS DE ROL */
 .vlc-usr-role-tag {
   padding: 4px 8px;
   border-radius: 6px;
@@ -90,7 +86,6 @@
 .vlc-usr-role-tag.TRANSP { background: #dcfce7; color: #166534; }
 .vlc-usr-role-tag.CLIENTE { background: #dbeafe; color: #1e40af; }
 
-/* BOTONES DE ACCIÓN */
 .vlc-usr-actions {
   display: flex;
   gap: 10px;
@@ -109,11 +104,10 @@
 .vlc-usr-icon-btn.delete { color: #dc2626; }
 .vlc-usr-icon-btn:hover { transform: scale(1.2); }
 
-/* MODAL UNIFICADO */
 .vlc-modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Un poco más oscuro el fondo para resaltar el modal */
+  background: rgba(0, 0, 0, 0.5); 
   display: flex;
   justify-content: center;
   align-items: center;

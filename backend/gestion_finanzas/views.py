@@ -5,13 +5,14 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import Sum
 from .models import Finanza
 from .serializers import FinanzaSerializer
+from gestion_usuarios.permissions import IsAdminRol
 
 class FinanzaViewSet(viewsets.ModelViewSet):
     queryset = Finanza.objects.all()
     serializer_class = FinanzaSerializer
     
     authentication_classes = [JWTAuthentication] 
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser] 
+    permission_classes = [permissions.IsAuthenticated, IsAdminRol] 
 
     def get_queryset(self):
         
@@ -35,7 +36,7 @@ class FinanzaViewSet(viewsets.ModelViewSet):
 
 class BalanceView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminRol]
 
     def get(self, request):
         queryset = Finanza.objects.all()

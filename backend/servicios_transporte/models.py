@@ -3,14 +3,22 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class SolicitudServicio(models.Model):
-    ESTADOS = [
-        ('pendiente', 'Pendiente'),
-        ('asignado', 'Asignado'),
-        ('completado', 'Completado'),
-        ('rechazado', 'Rechazado'),
-    ]
+class EstadoSolicitud(models.Model):
+    nombre = models.CharField(max_length=50)
+    codigo = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.nombre
+
+class EstadoSistema(models.Model):
+    nombre = models.CharField(max_length=50)
+    codigo = models.CharField(max_length=50, unique=True) 
+
+    def __str__(self):
+        return self.nombre
+
+class SolicitudServicio(models.Model):
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solicitudes')
     origen = models.CharField(max_length=256)
     destino = models.CharField(max_length=255)
@@ -18,11 +26,12 @@ class SolicitudServicio(models.Model):
 
     tipo_carga = models.CharField(max_length=1000)
     fecha_solicitud = models.DateField()
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    estado = models.ForeignKey(EstadoSolicitud, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes')
+    estado_sistema = models.ForeignKey(EstadoSistema, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.origen} -> {self.destino} ({self.estado})"
+        return f"{self.origen} -> {self.destino} ({self.estado.nombre if self.estado else 'Sin Estado'})"
 
 class PrediccionIA(models.Model):
     solicitud = models.OneToOneField(SolicitudServicio, on_delete=models.CASCADE, related_name='prediccion_ia')

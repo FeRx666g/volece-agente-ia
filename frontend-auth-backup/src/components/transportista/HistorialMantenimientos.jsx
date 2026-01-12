@@ -7,7 +7,6 @@ export default function HistorialMantenimientos() {
   const [mantenimientos, setMantenimientos] = useState([]);
   const [mapaVehiculos, setMapaVehiculos] = useState({});
   
-  // Estado para los filtros
   const [filtros, setFiltros] = useState({
     fecha_inicio: '',
     fecha_fin: ''
@@ -90,12 +89,10 @@ export default function HistorialMantenimientos() {
     return `${dia}/${mes}/${anio}`;
   };
 
-  // --- LÓGICA DE FILTRADO EN VIVO PARA LA TABLA ---
   const mantenimientosFiltrados = mantenimientos.filter((m) => {
-    const fechaM = m.fecha_mantenimiento; // Formato "YYYY-MM-DD"
+    const fechaM = m.fecha_mantenimiento;
     const { fecha_inicio, fecha_fin } = filtros;
 
-    // Comparación directa de strings ISO (funciona perfecto para fechas)
     if (fecha_inicio && fechaM < fecha_inicio) return false;
     if (fecha_fin && fechaM > fecha_fin) return false;
     

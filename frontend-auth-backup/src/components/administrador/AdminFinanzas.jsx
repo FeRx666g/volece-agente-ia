@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaPlus, FaFilePdf } from 'react-icons/fa';
+import { FaPlus, FaFilePdf, FaEdit, FaTrash } from 'react-icons/fa';
 import './estilos/AdminFinanzas.css';
 
 export default function AdminFinanzas() {
   const [movimientos, setMovimientos] = useState([]);
   const [resumen, setResumen] = useState({ ingresos: 0, gastos: 0, balance: 0 });
   const [filtros, setFiltros] = useState({ fecha_inicio: '', fecha_fin: '', tipo: '' });
-  
+
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [editingId, setEditingId] = useState(null); 
   const [nuevoMovimiento, setNuevoMovimiento] = useState({
     tipo: 'INGRESO',
     monto: '',
@@ -39,20 +40,61 @@ export default function AdminFinanzas() {
   }, [filtros]);
 
   const handleChange = (e) => {
+    if (e.target.name === 'monto' && e.target.value < 0) return;
     setNuevoMovimiento({ ...nuevoMovimiento, [e.target.name]: e.target.value });
+  };
+
+  const handleEdit = (mov) => {
+    setEditingId(mov.id);
+    setNuevoMovimiento({
+      tipo: mov.tipo,
+      monto: mov.monto,
+      descripcion: mov.descripcion,
+      fecha: mov.fecha
+    });
+    setMostrarModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Seguro que desea eliminar este movimiento?")) return;
+    try {
+      await axios.delete(`${API_URL}movimientos/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Movimiento eliminado');
+      cargarDatos();
+    } catch (error) {
+      alert('Error al eliminar');
+    }
+  };
+
+  const cerrarModal = () => {
+    setMostrarModal(false);
+    setEditingId(null);
+    setNuevoMovimiento({ tipo: 'INGRESO', monto: '', descripcion: '', fecha: '' });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${API_URL}movimientos/`, 
-        nuevoMovimiento, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Movimiento registrado correctamente');
-      setMostrarModal(false);
-      setNuevoMovimiento({ tipo: 'INGRESO', monto: '', descripcion: '', fecha: '' });
+      if (editingId) {
+        // Modo Edición
+        await axios.put(
+          `${API_URL}movimientos/${editingId}/`,
+          nuevoMovimiento,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Movimiento actualizado');
+      } else {
+        // Modo Creación
+        await axios.post(
+          `${API_URL}movimientos/`,
+          nuevoMovimiento,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Movimiento registrado correctamente');
+      }
+      cerrarModal();
       cargarDatos();
     } catch (error) {
       alert('Error al guardar el movimiento');
@@ -78,19 +120,19 @@ export default function AdminFinanzas() {
 
       <div className="vlc-fin-controls">
         <div className="vlc-fin-filters">
-          <input 
-            type="date" 
+          <input
+            type="date"
             className="vlc-fin-input"
-            onChange={(e) => setFiltros({...filtros, fecha_inicio: e.target.value})} 
+            onChange={(e) => setFiltros({ ...filtros, fecha_inicio: e.target.value })}
           />
-          <input 
-            type="date" 
+          <input
+            type="date"
             className="vlc-fin-input"
-            onChange={(e) => setFiltros({...filtros, fecha_fin: e.target.value})} 
+            onChange={(e) => setFiltros({ ...filtros, fecha_fin: e.target.value })}
           />
-          <select 
+          <select
             className="vlc-fin-select"
-            onChange={(e) => setFiltros({...filtros, tipo: e.target.value})}
+            onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}
           >
             <option value="">Todos los Tipos</option>
             <option value="INGRESO">Ingresos</option>
@@ -99,12 +141,12 @@ export default function AdminFinanzas() {
         </div>
 
         <div className="vlc-fin-actions">
-            <button className="vlc-fin-btn vlc-btn-add" onClick={() => setMostrarModal(true)}>
-                <FaPlus /> Registrar
-            </button>
-            <button className="vlc-fin-btn vlc-btn-pdf" onClick={handleExportarPDF}>
-                <FaFilePdf /> Reporte PDF
-            </button>
+          <button className="vlc-fin-btn vlc-btn-add" onClick={() => setMostrarModal(true)}>
+            <FaPlus /> Registrar
+          </button>
+          <button className="vlc-fin-btn vlc-btn-pdf" onClick={handleExportarPDF}>
+            <FaFilePdf /> Reporte PDF
+          </button>
         </div>
       </div>
 
@@ -117,24 +159,33 @@ export default function AdminFinanzas() {
               <th>Descripción</th>
               <th>Monto</th>
               <th>Registrado Por</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {movimientos.length === 0 ? (
-               <tr><td colSpan="5" className="vlc-fin-empty">No hay movimientos en este rango</td></tr>
+              <tr><td colSpan="6" className="vlc-fin-empty">No hay movimientos en este rango</td></tr>
             ) : (
               movimientos.map((mov) => (
-                  <tr key={mov.id}>
+                <tr key={mov.id}>
                   <td>{mov.fecha}</td>
                   <td>
-                      <span className={`vlc-fin-tag ${mov.tipo}`}>
-                        {mov.tipo}
-                      </span>
+                    <span className={`vlc-fin-tag ${mov.tipo}`}>
+                      {mov.tipo}
+                    </span>
                   </td>
                   <td>{mov.descripcion || '-'}</td>
                   <td className="vlc-fin-amount">${mov.monto}</td>
                   <td>{mov.usuario_nombre}</td>
-                  </tr>
+                  <td className="vlc-fin-actions-cell">
+                    <button className="vlc-usr-icon-btn edit" onClick={() => handleEdit(mov)} title="Editar">
+                      <FaEdit />
+                    </button>
+                    <button className="vlc-usr-icon-btn delete" onClick={() => handleDelete(mov.id)} title="Eliminar">
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
               ))
             )}
           </tbody>
@@ -144,9 +195,9 @@ export default function AdminFinanzas() {
       {mostrarModal && (
         <div className="vlc-fin-modal-overlay">
           <div className="vlc-fin-modal-card">
-            <h3>Registrar Movimiento</h3>
+            <h3>{editingId ? 'Editar Movimiento' : 'Registrar Movimiento'}</h3>
             <form className="vlc-fin-form" onSubmit={handleSubmit}>
-              
+
               <div className="vlc-fin-field">
                 <label>Tipo de Movimiento:</label>
                 <select name="tipo" value={nuevoMovimiento.tipo} onChange={handleChange} required>
@@ -157,7 +208,16 @@ export default function AdminFinanzas() {
 
               <div className="vlc-fin-field">
                 <label>Monto o Cantidad:</label>
-                <input type="number" step="0.01" name="monto" placeholder="0.00" value={nuevoMovimiento.monto} onChange={handleChange} required />
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="monto"
+                  placeholder="0.00"
+                  value={nuevoMovimiento.monto}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="vlc-fin-field">
@@ -172,7 +232,7 @@ export default function AdminFinanzas() {
 
               <div className="vlc-fin-modal-btns">
                 <button type="submit" className="vlc-fin-btn-save">Guardar</button>
-                <button type="button" className="vlc-fin-btn-cancel" onClick={() => setMostrarModal(false)}>Cancelar</button>
+                <button type="button" className="vlc-fin-btn-cancel" onClick={cerrarModal}>Cancelar</button>
               </div>
             </form>
           </div>
@@ -183,8 +243,8 @@ export default function AdminFinanzas() {
 }
 
 const CardResumen = ({ titulo, monto, type, isNegative }) => (
-    <div className={`vlc-fin-summary-card vlc-fin-card-${type} ${isNegative ? 'vlc-fin-negative' : ''}`}>
-        <h4>{titulo}</h4>
-        <p>${monto}</p>
-    </div>
+  <div className={`vlc-fin-summary-card vlc-fin-card-${type} ${isNegative ? 'vlc-fin-negative' : ''}`}>
+    <h4>{titulo}</h4>
+    <p>${monto}</p>
+  </div>
 );

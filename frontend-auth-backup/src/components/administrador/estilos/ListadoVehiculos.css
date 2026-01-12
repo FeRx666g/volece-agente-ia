@@ -10,7 +10,6 @@
   --vlc-btn-edit-dark: #2563eb;
 }
 
-/* --- ESTILOS GENERALES Y LAYOUT --- */
 .vlc-vls-container {
   max-width: 1200px;
   margin: 40px auto;
@@ -36,7 +35,6 @@
   font-size: 1rem;
 }
 
-/* --- BARRA DE FILTROS --- */
 .vlc-vls-filters-bar {
   background: var(--vlc-vls-white);
   padding: 1.5rem;
@@ -75,7 +73,7 @@
   outline: none;
   transition: border-color 0.2s;
   width: 100%;
-  background-color: white; /* Asegura fondo blanco */
+  background-color: white;  
 }
 
 .vlc-vls-filter-group input:focus,
@@ -83,7 +81,6 @@
   border-color: var(--vlc-vls-primary);
 }
 
-/* --- TABLA --- */
 .vlc-vls-table-wrapper {
   background: var(--vlc-vls-white);
   border-radius: 16px;
@@ -150,7 +147,6 @@
 .vlc-vls-status-select.inactivo { background: #f1f5f9; color: #475569; }
 .vlc-vls-status-select.mantenimiento { background: #ffedeb; color: #b91c1c; }
 
-/* Botón Editar en la tabla */
 .vlc-vls-btn-edit {
   background-color: var(--vlc-btn-edit);
   color: white;
@@ -167,7 +163,6 @@
   background-color: var(--vlc-btn-edit-dark);
 }
 
-/* --- PAGINACIÓN --- */
 .vlc-vls-pagination {
   margin-top: 2rem;
   display: flex;
@@ -201,10 +196,6 @@
   color: var(--vlc-vls-muted);
   font-size: 0.9rem;
 }
-
-/* =========================================
-   ESTILOS VENTANA MODAL (POPUP)
-   ========================================= */
 
 .vlc-modal-overlay {
   position: fixed;
@@ -339,7 +330,6 @@
   text-transform: uppercase;
 }
 
-/* AQUÍ ESTABA EL CAMBIO NECESARIO: Agregamos select y textarea */
 .vlc-group input, 
 .vlc-group select, 
 .vlc-group textarea {
@@ -349,9 +339,9 @@
   font-size: 0.95rem;
   color: var(--vlc-vls-text);
   transition: border-color 0.2s;
-  background-color: white; /* Importante para selects */
-  width: 100%; /* Asegura que llenen el espacio */
-  font-family: inherit; /* Heredar fuente */
+  background-color: white; 
+  width: 100%; 
+  font-family: inherit; 
 }
 
 .vlc-group input:focus, 

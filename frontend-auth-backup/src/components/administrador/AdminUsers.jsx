@@ -8,6 +8,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function AdminUsers() {
   const [usuarios, setUsuarios] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [filtroRol, setFiltroRol] = useState('TODOS');
   const [currentPage, setCurrentPage] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -29,7 +30,22 @@ export default function AdminUsers() {
     }
   };
 
-  useEffect(() => { cargarUsuarios(); }, []);
+  const cargarRoles = async () => {
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/usuarios/roles/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (Array.isArray(res.data)) setRoles(res.data);
+      else if (res.data.results) setRoles(res.data.results);
+    } catch (error) {
+      console.error('Error cargando roles:', error);
+    }
+  };
+
+  useEffect(() => {
+    cargarUsuarios();
+    cargarRoles();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar este usuario?')) return;
@@ -66,6 +82,7 @@ export default function AdminUsers() {
     const method = usuarioEditando ? 'put' : 'post';
     const data = usuarioEditando
       ? {
+        username: usuarioEditando.username,
         first_name: usuarioEditando.first_name,
         last_name: usuarioEditando.last_name,
         email: usuarioEditando.email,
@@ -119,9 +136,9 @@ export default function AdminUsers() {
             style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ddd' }}
           >
             <option value="TODOS">Todos los roles</option>
-            <option value="ADMIN">Administrador</option>
-            <option value="TRANSP">Transportista</option>
-            <option value="CLIENTE">Cliente</option>
+            {roles.map(rol => (
+              <option key={rol.id} value={rol.codigo}>{rol.nombre}</option>
+            ))}
           </select>
           <button className="vlc-usr-btn-add" onClick={() => setMostrarModal(true)}>
             <FaPlus /> Crear Nuevo Usuario
@@ -187,30 +204,52 @@ export default function AdminUsers() {
             <h3>{usuarioEditando ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
             <form className="vlc-modal-form" onSubmit={handleFormSubmit}>
               <div className="vlc-modal-row">
-                <input type="text" name="first_name" placeholder="Nombre" value={usuarioEditando ? usuarioEditando.first_name : nuevoUsuario.first_name} onChange={handleChange} required />
-                <input type="text" name="last_name" placeholder="Apellido" value={usuarioEditando ? usuarioEditando.last_name : nuevoUsuario.last_name} onChange={handleChange} required />
+                <div style={{ flex: 1, marginRight: '10px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre</label>
+                  <input type="text" name="first_name" placeholder="Nombre" value={usuarioEditando ? usuarioEditando.first_name : nuevoUsuario.first_name} onChange={handleChange} required style={{ width: '100%' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Apellido</label>
+                  <input type="text" name="last_name" placeholder="Apellido" value={usuarioEditando ? usuarioEditando.last_name : nuevoUsuario.last_name} onChange={handleChange} required style={{ width: '100%' }} />
+                </div>
               </div>
 
-              {!usuarioEditando && (
-                <input type="text" name="username" placeholder="Usuario" value={nuevoUsuario.username} onChange={handleChange} required />
-              )}
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre de Usuario (Nickname)</label>
+                <input type="text" name="username" placeholder="Usuario" value={usuarioEditando ? usuarioEditando.username : nuevoUsuario.username} onChange={handleChange} required style={{ width: '100%' }} />
+              </div>
 
               <div className="vlc-modal-row">
-                <input type="email" name="email" placeholder="Email" value={usuarioEditando ? usuarioEditando.email : nuevoUsuario.email} onChange={handleChange} required />
-                <input type="text" name="telefono" placeholder="Teléfono" value={usuarioEditando ? (usuarioEditando.telefono || '') : (nuevoUsuario.telefono || '')} onChange={handleChange} />
+                <div style={{ flex: 1, marginRight: '10px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Correo Electrónico</label>
+                  <input type="email" name="email" placeholder="Email" value={usuarioEditando ? usuarioEditando.email : nuevoUsuario.email} onChange={handleChange} required style={{ width: '100%' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Teléfono</label>
+                  <input type="text" name="telefono" placeholder="Teléfono" value={usuarioEditando ? (usuarioEditando.telefono || '') : (nuevoUsuario.telefono || '')} onChange={handleChange} style={{ width: '100%' }} />
+                </div>
               </div>
 
               {!usuarioEditando && (
-                <input type="password" name="password" placeholder="Contraseña" value={nuevoUsuario.password} onChange={handleChange} required />
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contraseña</label>
+                  <input type="password" name="password" placeholder="Contraseña" value={nuevoUsuario.password} onChange={handleChange} required style={{ width: '100%' }} />
+                </div>
               )}
 
-              <input type="text" name="cedula_ruc" placeholder="Cédula/RUC" value={usuarioEditando ? usuarioEditando.cedula_ruc : nuevoUsuario.cedula_ruc} onChange={handleChange} required />
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Cédula / RUC</label>
+                <input type="text" name="cedula_ruc" placeholder="Cédula/RUC" value={usuarioEditando ? usuarioEditando.cedula_ruc : nuevoUsuario.cedula_ruc} onChange={handleChange} required style={{ width: '100%' }} />
+              </div>
 
-              <select name="rol" value={usuarioEditando ? usuarioEditando.rol : nuevoUsuario.rol} onChange={handleChange}>
-                <option value="CLIENTE">Cliente</option>
-                <option value="TRANSP">Transportista</option>
-                <option value="ADMIN">Administrador</option>
-              </select>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Rol</label>
+                <select name="rol" value={usuarioEditando ? usuarioEditando.rol : nuevoUsuario.rol} onChange={handleChange} style={{ width: '100%' }}>
+                  {roles.map(rol => (
+                    <option key={rol.id} value={rol.codigo}>{rol.nombre}</option>
+                  ))}
+                </select>
+              </div>
 
               <div className="vlc-modal-btns">
                 <button type="submit" className="vlc-modal-btn save">{usuarioEditando ? 'Actualizar' : 'Crear'}</button>

@@ -1,23 +1,29 @@
 from rest_framework import generics, permissions, filters, status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import viewsets
 
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 
 import requests
 
-from .models import SolicitudServicio, PrediccionIA
-from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer
+from .models import SolicitudServicio, PrediccionIA, EstadoSolicitud, EstadoSistema
+from .serializers import SolicitudServicioSerializer, DatasetTurnosIASerializer, EstadoSolicitudSerializer
 
 from django.utils import timezone
 
 from gestion_transporte.models import DatasetTurnosIA
 from gestion_vehiculos.models import Vehiculo
 from gestion_usuarios.models import Usuario
+from gestion_usuarios.permissions import IsAdminRol
 
+class EstadoSolicitudViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = EstadoSolicitud.objects.all()
+    serializer_class = EstadoSolicitudSerializer
+    permission_classes = [IsAuthenticated]
 
 class CrearSolicitudServicioView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -25,7 +31,10 @@ class CrearSolicitudServicioView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(cliente=self.request.user)
+        # Assign default 'pendiente' state if not provided
+        estado_pendiente = get_object_or_404(EstadoSolicitud, codigo='pendiente')
+        estado_activo = get_object_or_404(EstadoSistema, codigo='ACTIVO')
+        serializer.save(cliente=self.request.user, estado=estado_pendiente, estado_sistema=estado_activo)
 
 
 class ListaSolicitudesClienteView(generics.ListAPIView):
@@ -34,29 +43,37 @@ class ListaSolicitudesClienteView(generics.ListAPIView):
 
     def get_queryset(self):
         return SolicitudServicio.objects.filter(
-            cliente=self.request.user
+            cliente=self.request.user,
+            estado_sistema__codigo='ACTIVO' 
         ).order_by('-fecha_creacion')
 
 
 class ListaSolicitudesAdminView(generics.ListAPIView):
-    queryset = SolicitudServicio.objects.prefetch_related('prediccion_ia').all().order_by('-fecha_creacion')
+    queryset = SolicitudServicio.objects.filter(cliente__is_active=True, estado_sistema__codigo='ACTIVO').prefetch_related('prediccion_ia').order_by('-fecha_creacion')
     serializer_class = SolicitudServicioSerializer
-    permission_classes = [IsAdminUser]  
+    permission_classes = [IsAdminRol]  
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['estado', 'cliente']
+    filterset_fields = ['cliente']
     search_fields = ['cliente__username']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        estado_param = self.request.query_params.get('estado')
+        if estado_param:
+            qs = qs.filter(estado__codigo=estado_param)
+        return qs
 
 class SolicitudDetailView(generics.RetrieveUpdateAPIView):
     queryset = SolicitudServicio.objects.all()
     serializer_class = SolicitudServicioSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRol]
 
-N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook-test/asignar-turno-ai"
+N8N_URL_ASIGNAR_TURNO = "http://localhost:5678/webhook/asignar-turno-ai"
 N8N_WEBHOOK_WHATSAPP = "http://localhost:5678/webhook/notificacion-transportista"
  
 class AsignarTurnoIAView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser] 
+    permission_classes = [IsAdminRol] 
 
     def post(self, request, *args, **kwargs):
         id_solicitud = request.data.get("id_solicitud")
@@ -69,7 +86,7 @@ class AsignarTurnoIAView(APIView):
 
         solicitud = get_object_or_404(SolicitudServicio, pk=id_solicitud)
 
-        if solicitud.estado == 'asignado':
+        if solicitud.estado and solicitud.estado.codigo == 'asignado':
             return Response(
                 {"detail": "La solicitud ya fue asignada y no debe enviarse nuevamente a IA."},
                 status=status.HTTP_400_BAD_REQUEST
@@ -109,25 +126,25 @@ class AsignarTurnoIAView(APIView):
 
 class CrearTurnoDesdeSolicitudView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRol]
 
     def post(self, request, *args, **kwargs):
 
         solicitud_id = request.data.get('solicitud_id')
         transportista_id = request.data.get('transportista_id')
         vehiculo_id = request.data.get('vehiculo_id') 
-        nuevo_estado = request.data.get('nuevo_estado')
+        nuevo_estado_codigo = request.data.get('nuevo_estado')
         comentario_ia = request.data.get('comentario_ia')
 
-        if not solicitud_id or not nuevo_estado:
+        if not solicitud_id or not nuevo_estado_codigo:
             return Response(
                 {"detail": "solicitud_id y nuevo_estado son obligatorios."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if nuevo_estado not in ['asignado', 'rechazado']:
+        if nuevo_estado_codigo not in ['asignado', 'rechazado', 'completado']:
             return Response(
-                {"detail": "nuevo_estado debe ser 'asignado' o 'rechazado'."},
+                {"detail": "nuevo_estado debe ser 'asignado', 'rechazado' o 'completado'."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -170,7 +187,8 @@ class CrearTurnoDesdeSolicitudView(APIView):
         else:
             vehiculo = turno.vehiculo
 
-        solicitud.estado = nuevo_estado
+        estado_obj = get_object_or_404(EstadoSolicitud, codigo=nuevo_estado_codigo)
+        solicitud.estado = estado_obj
         solicitud.save()
 
         estado_map = {
@@ -180,7 +198,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
         }
         estado_vehiculo_dataset = estado_map.get(vehiculo.estado, 'activo')
 
-        comentario_final = comentario_ia if nuevo_estado == 'asignado' else None
+        comentario_final = comentario_ia if nuevo_estado_codigo == 'asignado' else None
 
         if turno is None:
             fecha_turno = solicitud.fecha_solicitud or timezone.localdate()
@@ -192,7 +210,7 @@ class CrearTurnoDesdeSolicitudView(APIView):
                 fecha_turno=fecha_turno,
                 estado_vehiculo=estado_vehiculo_dataset,
                 vehiculo_operativo=(vehiculo.estado == 'ACTIVO'),
-                estado_solicitud=solicitud.estado,
+                estado_solicitud=solicitud.estado.codigo, # Save valid Choice value
                 comentario_ia=comentario_final,
             )
         else:
@@ -200,28 +218,35 @@ class CrearTurnoDesdeSolicitudView(APIView):
             turno.vehiculo = vehiculo
             turno.estado_vehiculo = estado_vehiculo_dataset
             turno.vehiculo_operativo = (vehiculo.estado == 'ACTIVO')
-            turno.estado_solicitud = solicitud.estado
-
+            turno.estado_solicitud = solicitud.estado.codigo
+            
             if comentario_final is not None:
                 turno.comentario_ia = comentario_final
 
             turno.save()
 
-        print(f"     1. Nuevo Estado: '{nuevo_estado}' (Esperado: 'asignado')")
+        print(f"     1. Nuevo Estado: '{nuevo_estado_codigo}' (Esperado: 'asignado')")
         print(f"     2. Tiene Teléfono?: {bool(transportista_obj.telefono)}")
             
-        if nuevo_estado == 'asignado' and transportista_obj.telefono:
+        if nuevo_estado_codigo == 'asignado' and transportista_obj.telefono:
             
+            fecha_servicio_str = ""
+            if solicitud.fecha_solicitud:
+                fecha_servicio_str = solicitud.fecha_solicitud.strftime('%Y-%m-%d')
+            else:
+                 fecha_servicio_str = timezone.localdate().strftime('%Y-%m-%d')
+
             payload_whatsapp = {
                 "telefono": transportista_obj.telefono,
                 "nombre_transportista": f"{transportista_obj.first_name} {transportista_obj.last_name}",
                 "origen": solicitud.origen,
                 "destino": solicitud.destino,
-                "fecha_servicio": solicitud.fecha_solicitud.strftime('%Y-%m-%d')
+                "fecha_servicio": fecha_servicio_str
             }
 
             try:
-                requests.post(N8N_WEBHOOK_WHATSAPP, json=payload_whatsapp, timeout=3)
+                print(f"Enviando webhook a {N8N_WEBHOOK_WHATSAPP}")
+                requests.post(N8N_WEBHOOK_WHATSAPP, json=payload_whatsapp, timeout=5)
             except requests.exceptions.RequestException as e:
                 print(f"ERROR: Fallo la conexión con el webhook de n8n: {e}")
 
@@ -235,5 +260,32 @@ class MisAsignacionesView(generics.ListAPIView):
     def get_queryset(self):
         return DatasetTurnosIA.objects.filter(
             transportista=self.request.user,
-            solicitud__estado='asignado'  
+            solicitud__estado__codigo='asignado'  
         ).order_by('-fecha_turno')
+
+
+class CancelarSolicitudClienteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        solicitud = get_object_or_404(SolicitudServicio, pk=pk)
+
+        # Verify ownership
+        if solicitud.cliente != request.user:
+            return Response(
+                {"detail": "No tienes permiso para cancelar esta solicitud."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Verify status (only 'pendiente' or 'asignado' can be cancelled by client)
+        if solicitud.estado.codigo not in ['pendiente', 'asignado']:
+             return Response(
+                {"detail": "Solo se pueden cancelar solicitudes pendientes o asignadas."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        estado_cancelado = get_object_or_404(EstadoSolicitud, codigo='cancelado')
+        solicitud.estado = estado_cancelado
+        solicitud.save()
+
+        return Response({"detail": "Solicitud cancelada correctamente."}, status=status.HTTP_200_OK)

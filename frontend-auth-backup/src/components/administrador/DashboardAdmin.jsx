@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { 
-  FaSignOutAlt, FaHome, FaUsers, FaFileAlt, 
-  FaTruck, FaMoneyBillWave, FaChartBar 
+import {
+  FaSignOutAlt, FaHome, FaUsers, FaFileAlt,
+  FaTruck, FaMoneyBillWave, FaChartBar
 } from 'react-icons/fa';
 import './estilos/DashboardAdmin.css';
 
@@ -36,8 +36,8 @@ export default function DashboardAdmin() {
           <ul className="vlc-nav-menu">
             {menuItems.map((item) => (
               <li key={item.path}>
-                <Link 
-                  to={item.path} 
+                <Link
+                  to={item.path}
                   className={location.pathname === item.path ? "vlc-link-item vlc-active" : "vlc-link-item"}
                 >
                   <span className="vlc-link-icon">{item.icon}</span>

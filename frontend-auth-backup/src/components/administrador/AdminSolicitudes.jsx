@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaUndo, FaCheckDouble, FaBan, FaTrash } from 'react-icons/fa';
 import './estilos/AdminSolicitudes.css';
 
 const API_SERVICIOS_URL = 'http://127.0.0.1:8000/api/servicios/';
@@ -215,6 +215,23 @@ const AdminSolicitudes = () => {
     }
   };
 
+  const eliminarSolicitud = async (id) => {
+    if (!window.confirm("¿Estás seguro de que quieres eliminar esta solicitud? Se ocultará del sistema.")) return;
+
+    setUpdatingId(id);
+    const token = localStorage.getItem('access');
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try {
+      await axios.patch(`${API_SERVICIOS_URL}solicitudes/${id}/`, { estado_sistema: 'INACTIVO' }, { headers });
+      await fetchSolicitudes();
+    } catch (err) {
+      alert("Error al eliminar la solicitud");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const cambiarEstado = async (id, nuevoEstado) => {
     const token = localStorage.getItem('access');
     if (!token) return;
@@ -234,7 +251,7 @@ const AdminSolicitudes = () => {
       let vehiculoId = prediccionSeleccionada?.vehiculo_id || null;
       let comentarioIA = prediccionSeleccionada?.comentario || null;
 
-      if (['asignado', 'rechazado'].includes(nuevoEstado)) {
+      if (['asignado', 'rechazado', 'completado'].includes(nuevoEstado)) {
         const payloadTurno = {
           solicitud_id: id,
           transportista_id: transportistaId,
@@ -303,12 +320,13 @@ const AdminSolicitudes = () => {
               <th>Estado</th>
               <th>Asignación (Socio - Unidad)</th>
               <th>Comentario IA</th>
-              <th>Acciones</th>
+              <th style={{ textAlign: 'center' }}>Acciones</th>
+              <th style={{ textAlign: 'center' }}>Eliminar</th>
             </tr>
           </thead>
           <tbody>
             {solicitudes.length === 0 ? (
-              <tr><td colSpan="9" className="vlc-sol-empty">No hay solicitudes disponibles</td></tr>
+              <tr><td colSpan="10" className="vlc-sol-empty">No hay solicitudes disponibles</td></tr>
             ) : (
               solicitudes
                 .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
@@ -319,7 +337,7 @@ const AdminSolicitudes = () => {
                     (p) => p.id_unico === s.selectedUniqueId
                   );
 
-                  const comentarioTexto = esAsignado ? s.comentario_ia_asignado : (opcionSeleccionada?.comentario || 'Sin comentario');
+                  const comentarioTexto = (esAsignado ? s.comentario_ia_asignado : (opcionSeleccionada?.comentario || 'Sin comentario')) || '';
 
                   return (
                     <tr key={s.id}>
@@ -341,7 +359,7 @@ const AdminSolicitudes = () => {
                       <td>{s.fecha_solicitud}</td>
                       <td>
                         <span className={`vlc-sol-tag ${s.estado}`}>
-                          {s.estado}
+                          {s.estado_nombre || s.estado}
                         </span>
                       </td>
 
@@ -358,53 +376,59 @@ const AdminSolicitudes = () => {
                             )}
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              {s.predicciones && s.predicciones.length > 0 && (
-                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                  <select
-                                    className="vlc-sol-select"
-                                    value={s.selectedUniqueId || ''}
-                                    onChange={(e) => {
-                                      const nuevoUniqueId = e.target.value;
-                                      const nuevasSolicitudes = solicitudes.map((sol) => {
-                                        if (sol.id === s.id) return { ...sol, selectedUniqueId: nuevoUniqueId };
-                                        return sol;
-                                      });
-                                      setSolicitudes(nuevasSolicitudes);
-                                    }}
-                                    disabled={updatingId === s.id}
-                                  >
-                                    {s.predicciones.map((pred) => {
-                                      const tieneProb = typeof pred.probabilidad === 'number';
-                                      const porcentaje = tieneProb ? ` (${Math.round(pred.probabilidad * 100)}%)` : '';
-                                      return (
-                                        <option key={pred.id_unico} value={pred.id_unico}>
-                                          {pred.transportista_nombre} - {pred.vehiculo_info} {porcentaje}
-                                        </option>
-                                      );
-                                    })}
-                                  </select>
-                                </div>
-                              )}
-
-                              <button
-                                className="vlc-sol-btn-generate"
-                                title={s.predicciones && s.predicciones.length > 0 ? "Regenerar recomendación" : "Generar recomendación"}
-                                style={{
-                                  backgroundColor: s.predicciones && s.predicciones.length > 0 ? '#facc15' : '#4f46e5',
-                                  color: s.predicciones && s.predicciones.length > 0 ? 'black' : 'white',
-                                  padding: '5px 8px',
-                                  borderRadius: '5px', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
-                                  whiteSpace: 'nowrap'
-                                }}
-                                onClick={() => generarRecomendacionIndividual(s.id, s.tipo_vehiculo)}
-                                disabled={updatingId === s.id}
-                              >
-                                {updatingId === s.id ? '...' : (s.predicciones && s.predicciones.length > 0 ? '↻' : 'Generar')}
-                              </button>
+                          esAsignado ? (
+                            <div style={{ color: '#dc2626', fontWeight: '600', fontSize: '0.85rem' }}>
+                              ⚠ Asignado (Datos faltantes)
                             </div>
-                          </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                {s.predicciones && s.predicciones.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <select
+                                      className="vlc-sol-select"
+                                      value={s.selectedUniqueId || ''}
+                                      onChange={(e) => {
+                                        const nuevoUniqueId = e.target.value;
+                                        const nuevasSolicitudes = solicitudes.map((sol) => {
+                                          if (sol.id === s.id) return { ...sol, selectedUniqueId: nuevoUniqueId };
+                                          return sol;
+                                        });
+                                        setSolicitudes(nuevasSolicitudes);
+                                      }}
+                                      disabled={updatingId === s.id}
+                                    >
+                                      {s.predicciones.map((pred) => {
+                                        const tieneProb = typeof pred.probabilidad === 'number';
+                                        const porcentaje = tieneProb ? ` (${Math.round(pred.probabilidad * 100)}%)` : '';
+                                        return (
+                                          <option key={pred.id_unico} value={pred.id_unico}>
+                                            {pred.transportista_nombre} - {pred.vehiculo_info} {porcentaje}
+                                          </option>
+                                        );
+                                      })}
+                                    </select>
+                                  </div>
+                                )}
+
+                                <button
+                                  className="vlc-sol-btn-generate"
+                                  title={s.predicciones && s.predicciones.length > 0 ? "Regenerar recomendación" : "Generar recomendación"}
+                                  style={{
+                                    backgroundColor: s.predicciones && s.predicciones.length > 0 ? '#facc15' : '#4f46e5',
+                                    color: s.predicciones && s.predicciones.length > 0 ? 'black' : 'white',
+                                    padding: '5px 8px',
+                                    borderRadius: '5px', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                  onClick={() => generarRecomendacionIndividual(s.id, s.tipo_vehiculo)}
+                                  disabled={updatingId === s.id}
+                                >
+                                  {updatingId === s.id ? '...' : (s.predicciones && s.predicciones.length > 0 ? '↻' : 'Generar')}
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )}
                       </td>
 
@@ -412,13 +436,13 @@ const AdminSolicitudes = () => {
                         <div className={`vlc-sol-comment-box ${expandedId === s.id ? 'expanded' : ''}`}>
                           {comentarioTexto}
                         </div>
-                        {comentarioTexto.length > 60 && (
+                        {(comentarioTexto || '').length > 60 && (
                           <button className="vlc-sol-read-more" onClick={() => toggleExpand(s.id)}>
                             {expandedId === s.id ? 'Ver menos' : 'Ver más'}
                           </button>
                         )}
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         <div className="vlc-sol-actions">
                           <FaCheckCircle
                             className={`vlc-sol-icon-btn approve ${updatingId === s.id ? 'disabled' : ''}`}
@@ -430,7 +454,33 @@ const AdminSolicitudes = () => {
                             onClick={() => updatingId !== s.id && cambiarEstado(s.id, 'rechazado')}
                             title="Rechazar"
                           />
+                          <FaCheckDouble
+                            className={`vlc-sol-icon-btn complete ${updatingId === s.id ? 'disabled' : ''}`}
+                            onClick={() => updatingId !== s.id && cambiarEstado(s.id, 'completado')}
+                            title="Completado"
+                            style={{ color: '#059669', cursor: 'pointer', marginLeft: '5px' }}
+                          />
+                          <FaBan
+                            className={`vlc-sol-icon-btn cancel ${updatingId === s.id ? 'disabled' : ''}`}
+                            onClick={() => updatingId !== s.id && cambiarEstado(s.id, 'cancelado')}
+                            title="Cancelar"
+                            style={{ color: '#dc2626', cursor: 'pointer', marginLeft: '5px' }}
+                          />
+                          <FaUndo
+                            className={`vlc-sol-icon-btn reset ${updatingId === s.id ? 'disabled' : ''}`}
+                            onClick={() => updatingId !== s.id && cambiarEstado(s.id, 'pendiente')}
+                            title="Pendiente"
+                            style={{ color: '#d97706', cursor: 'pointer', marginLeft: '5px' }}
+                          />
                         </div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <FaTrash
+                          className={`vlc-sol-icon-btn delete ${updatingId === s.id ? 'disabled' : ''}`}
+                          onClick={() => updatingId !== s.id && eliminarSolicitud(s.id)}
+                          title="Eliminar"
+                          style={{ color: '#475569', cursor: 'pointer' }}
+                        />
                       </td>
                     </tr>
                   );

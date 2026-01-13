@@ -1,6 +1,6 @@
 :root {
   --vlc-green-dark: #166534;
-  --vlc-green-mid: #256d39; 
+  --vlc-green-mid: #256d39;
   --vlc-green-accent: #22c55e;
   --vlc-bg-body: #ffffff;
   --vlc-text-main: #2d3436;
@@ -55,8 +55,8 @@
 }
 
 .vlc-usr-table th {
-  background-color: var(--vlc-green-mid); 
-  color: white; 
+  background-color: var(--vlc-green-mid);
+  color: white;
   font-weight: 700;
   text-transform: uppercase;
   font-size: 0.8rem;
@@ -82,9 +82,21 @@
   font-size: 0.7rem;
   font-weight: 800;
 }
-.vlc-usr-role-tag.ADMIN { background: #fee2e2; color: #991b1b; }
-.vlc-usr-role-tag.TRANSP { background: #dcfce7; color: #166534; }
-.vlc-usr-role-tag.CLIENTE { background: #dbeafe; color: #1e40af; }
+
+.vlc-usr-role-tag.ADMIN {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.vlc-usr-role-tag.TRANSP {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.vlc-usr-role-tag.CLIENTE {
+  background: #dbeafe;
+  color: #1e40af;
+}
 
 .vlc-usr-actions {
   display: flex;
@@ -100,14 +112,25 @@
   transition: transform 0.2s;
 }
 
-.vlc-usr-icon-btn.edit { color: #2563eb; }
-.vlc-usr-icon-btn.delete { color: #dc2626; }
-.vlc-usr-icon-btn:hover { transform: scale(1.2); }
+.vlc-usr-icon-btn.edit {
+  color: #2563eb;
+}
+
+.vlc-usr-icon-btn.delete {
+  color: #dc2626;
+}
+
+.vlc-usr-icon-btn:hover {
+  transform: scale(1.2);
+}
 
 .vlc-modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5); 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -121,8 +144,10 @@
   max-width: 500px;
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: vlcSlideDown 0.4s ease;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .vlc-modal-card h3 {
@@ -138,7 +163,8 @@
   gap: 1rem;
 }
 
-.vlc-modal-form input, .vlc-modal-form select {
+.vlc-modal-form input,
+.vlc-modal-form select {
   padding: 12px;
   border: 1px solid var(--vlc-border);
   border-radius: 8px;
@@ -147,7 +173,8 @@
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.vlc-modal-form input:focus, .vlc-modal-form select:focus {
+.vlc-modal-form input:focus,
+.vlc-modal-form select:focus {
   border-color: var(--vlc-green-accent);
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
 }
@@ -157,7 +184,9 @@
   gap: 10px;
 }
 
-.vlc-modal-row input { flex: 1; }
+.vlc-modal-row input {
+  flex: 1;
+}
 
 .vlc-modal-btns {
   display: flex;
@@ -175,11 +204,42 @@
   transition: background-color 0.2s;
 }
 
-.vlc-modal-btn.save { background: var(--vlc-green-mid); color: white; }
-.vlc-modal-btn.save:hover { background: var(--vlc-green-dark); }
+.vlc-modal-btn.save {
+  background: var(--vlc-green-mid);
+  color: white;
+}
 
-.vlc-modal-btn.cancel { background: #f1f5f9; color: #475569; }
-.vlc-modal-btn.cancel:hover { background: #e2e8f0; }
+.vlc-modal-btn.save:hover {
+  background: var(--vlc-green-dark);
+}
 
-@keyframes vlcFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes vlcSlideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.vlc-modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.vlc-modal-btn.cancel:hover {
+  background: #e2e8f0;
+}
+
+@keyframes vlcFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vlcSlideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

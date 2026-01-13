@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaCheckCircle, FaTimesCircle, FaUndo, FaCheckDouble, FaBan, FaTrash } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaUndo, FaCheckDouble, FaBan, FaTrash, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import './estilos/AdminSolicitudes.css';
 
 const API_SERVICIOS_URL = 'http://127.0.0.1:8000/api/servicios/';
@@ -17,6 +17,9 @@ const AdminSolicitudes = () => {
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [tiposVehiculos, setTiposVehiculos] = useState([]);
+  const [editingTypeId, setEditingTypeId] = useState(null);
+  const [tempTipo, setTempTipo] = useState('');
 
   const generarTodasLasRecomendaciones = async () => {
     const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
@@ -277,13 +280,50 @@ const AdminSolicitudes = () => {
     }
   };
 
+  const actualizarTipoVehiculo = async (id) => {
+    if (!tempTipo) {
+      setEditingTypeId(null);
+      return;
+    }
+    setUpdatingId(id);
+    const token = localStorage.getItem('access');
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try {
+      await axios.patch(`${API_SERVICIOS_URL}solicitudes/${id}/`,
+        { tipo_vehiculo: tempTipo },
+        { headers }
+      );
+      await fetchSolicitudes();
+    } catch (err) {
+      alert("Error al actualizar tipo de vehículo");
+    } finally {
+      setUpdatingId(null);
+      setEditingTypeId(null);
+    }
+  };
+
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
   useEffect(() => {
     fetchSolicitudes();
+    fetchTiposVehiculos();
   }, []);
+
+  const fetchTiposVehiculos = async () => {
+    const token = localStorage.getItem('access');
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/vehiculos/tipos/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (Array.isArray(res.data)) setTiposVehiculos(res.data);
+      else if (res.data.results) setTiposVehiculos(res.data.results);
+    } catch (err) {
+      console.error("Error cargando tipos de vehículos");
+    }
+  };
 
   return (
     <div className="vlc-sol-container">
@@ -352,7 +392,56 @@ const AdminSolicitudes = () => {
                       </td>
                       <td>
                         <div className="vlc-sol-details">
-                          <small>{s.tipo_vehiculo || '-'}</small>
+                          {editingTypeId === s.id ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                              {tiposVehiculos.length > 0 ? (
+                                <select
+                                  value={tempTipo}
+                                  onChange={(e) => setTempTipo(e.target.value)}
+                                  className="vlc-sol-select"
+                                  style={{ padding: '2px', fontSize: '0.8rem' }}
+                                >
+                                  <option value="">Seleccionar</option>
+                                  {tiposVehiculos.map((tipo) => (
+                                    <option key={tipo.id} value={tipo.nombre}>{tipo.nombre}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={tempTipo}
+                                  onChange={(e) => setTempTipo(e.target.value)}
+                                  style={{ width: '100%', padding: '2px', fontSize: '0.8rem' }}
+                                />
+                              )}
+                              <div style={{ display: 'flex', gap: '5px' }}>
+                                <FaSave
+                                  onClick={() => actualizarTipoVehiculo(s.id)}
+                                  style={{ cursor: 'pointer', color: '#16a34a' }}
+                                  title="Guardar"
+                                />
+                                <FaTimes
+                                  onClick={() => setEditingTypeId(null)}
+                                  style={{ cursor: 'pointer', color: '#dc2626' }}
+                                  title="Cancelar"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <small>{s.tipo_vehiculo || '-'}</small>
+                              {s.estado !== 'asignado' && s.estado !== 'completado' && (
+                                <FaEdit
+                                  style={{ cursor: 'pointer', color: '#64748b', fontSize: '0.8rem' }}
+                                  onClick={() => {
+                                    setEditingTypeId(s.id);
+                                    setTempTipo(s.tipo_vehiculo || '');
+                                  }}
+                                  title="Editar Tipo"
+                                />
+                              )}
+                            </div>
+                          )}
                           <span>{s.tipo_carga}</span>
                         </div>
                       </td>

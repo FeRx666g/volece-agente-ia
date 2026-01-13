@@ -307,7 +307,7 @@ const ClienteDashboard = () => {
                             <button type="button" className="vlc-btn-password" style={{ backgroundColor: '#475569', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setModalPasswordVisible(true)}>
                               <FaLock /> Cambiar Contraseña
                             </button>
-                            <button type="button" className="vlc-btn-edit" onClick={() => setModoEdicion(true)}>
+                            <button type="button" className="vlc-btn-edit" onClick={(e) => { e.preventDefault(); setModoEdicion(true); }}>
                               <FaEdit /> Editar Datos
                             </button>
                           </div>

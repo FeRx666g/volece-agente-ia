@@ -26,10 +26,12 @@ class VehiculoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class VehiculoTransportistaSerializer(serializers.ModelSerializer):
+    tipo_nombre = serializers.ReadOnlyField(source='tipo_vehiculo.nombre')
+    
     class Meta:
         model = Vehiculo
         fields = [
-            'id', 'tipo', 'marca', 'modelo', 'placa', 'anio',
+            'id', 'tipo', 'tipo_nombre', 'marca', 'modelo', 'placa', 'anio',
             'color', 'kilometraje_actual', 'tonelaje', 'combustible', 'estado', 
             'foto',
         ]

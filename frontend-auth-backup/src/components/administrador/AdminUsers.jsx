@@ -151,6 +151,7 @@ export default function AdminUsers() {
           <thead>
             <tr>
               <th>Cédula</th>
+              <th>Usuario</th>
               <th>Nombre Completo</th>
               <th>Email</th>
               <th>Teléfono</th>
@@ -162,6 +163,7 @@ export default function AdminUsers() {
             {paginatedUsers.map((u) => (
               <tr key={u.id}>
                 <td>{u.cedula_ruc}</td>
+                <td>{u.username}</td>
                 <td>{u.first_name} {u.last_name}</td>
                 <td>{u.email}</td>
                 <td>{u.telefono || '-'}</td>

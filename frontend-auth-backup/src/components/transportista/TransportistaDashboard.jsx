@@ -192,6 +192,7 @@ export default function TransportistaDashboard() {
                       <div className="vlc-tra-info-item"><strong>Placa:</strong> <span>{vehiculoActual.placa}</span></div>
                       <div className="vlc-tra-info-item"><strong>Marca:</strong> <span>{vehiculoActual.marca}</span></div>
                       <div className="vlc-tra-info-item"><strong>Modelo:</strong> <span>{vehiculoActual.modelo}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Tipo:</strong> <span>{vehiculoActual.tipo_nombre || vehiculoActual.tipo}</span></div>
                       <div className="vlc-tra-info-item"><strong>Año:</strong> <span>{vehiculoActual.anio}</span></div>
                       <div className="vlc-tra-info-item"><strong>Color:</strong> <span>{vehiculoActual.color}</span></div>
                       <div className="vlc-tra-info-item"><strong>Tonelaje:</strong> <span>{vehiculoActual.tonelaje} t</span></div>

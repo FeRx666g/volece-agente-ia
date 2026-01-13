@@ -15,6 +15,7 @@ export default function ListadoVehiculos() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editData, setEditData] = useState(null);
   const [previewFoto, setPreviewFoto] = useState(null);
+  const [expandedObservationId, setExpandedObservationId] = useState(null);
 
   useEffect(() => {
     cargarTransportistas();
@@ -125,7 +126,7 @@ export default function ListadoVehiculos() {
     e.preventDefault();
     const formData = new FormData();
     formData.append('transportista', editData.transportista);
-    formData.append('tipo_vehiculo', editData.tipo); 
+    formData.append('tipo_vehiculo', editData.tipo);
     formData.append('marca', editData.marca);
     formData.append('modelo', editData.modelo);
     formData.append('placa', editData.placa);
@@ -206,14 +207,16 @@ export default function ListadoVehiculos() {
                 <th>Placa</th>
                 <th>Tipo</th>
                 <th>Marca / Modelo</th>
+                <th>Tonelaje</th>
                 <th>Socio Transportista</th>
+                <th>Observaciones</th>
                 <th>Estado Operativo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {vehiculosFiltrados.length === 0 ? (
-                <tr><td colSpan="6" className="vlc-vls-empty">No se encontraron unidades</td></tr>
+                <tr><td colSpan="8" className="vlc-vls-empty">No se encontraron unidades</td></tr>
               ) : (
                 vehiculosFiltrados.map(vehiculo => (
                   <tr key={vehiculo.id}>
@@ -225,12 +228,30 @@ export default function ListadoVehiculos() {
                         <small>{vehiculo.modelo}</small>
                       </div>
                     </td>
+                    <td style={{ textAlign: 'center' }}>{vehiculo.tonelaje} t</td>
                     <td>
                       <span className="vlc-vls-owner">
                         {vehiculo.transportista_detalle
                           ? `${vehiculo.transportista_detalle.first_name || vehiculo.transportista_detalle.nombre || ''} ${vehiculo.transportista_detalle.last_name || vehiculo.transportista_detalle.apellido || ''}`
                           : 'No asignado'}
                       </span>
+                    </td>
+                    <td>
+                      <div style={{ maxWidth: '200px', fontSize: '0.85rem', color: '#64748b' }}>
+                        {vehiculo.observaciones && vehiculo.observaciones.length > 50 ? (
+                          <>
+                            {expandedObservationId === vehiculo.id ? vehiculo.observaciones : `${vehiculo.observaciones.substring(0, 50)}...`}
+                            <button
+                              onClick={() => setExpandedObservationId(expandedObservationId === vehiculo.id ? null : vehiculo.id)}
+                              style={{ border: 'none', background: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '0.75rem', marginLeft: '5px' }}
+                            >
+                              {expandedObservationId === vehiculo.id ? 'Ver menos' : 'Ver más'}
+                            </button>
+                          </>
+                        ) : (
+                          vehiculo.observaciones || 'Sin observaciones'
+                        )}
+                      </div>
                     </td>
                     <td>
                       <select

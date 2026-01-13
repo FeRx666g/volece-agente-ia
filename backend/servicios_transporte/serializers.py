@@ -15,9 +15,9 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
     vehiculo_asignado_placa = serializers.SerializerMethodField()
     comentario_ia_asignado = serializers.SerializerMethodField()
     prediccion_data = serializers.SerializerMethodField()
-    estado = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSolicitud.objects.all())
+    estado = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSolicitud.objects.all(), required=False)
     estado_nombre = serializers.ReadOnlyField(source='estado.nombre')
-    estado_sistema = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSistema.objects.all())
+    estado_sistema = serializers.SlugRelatedField(slug_field='codigo', queryset=EstadoSistema.objects.all(), required=False)
 
     class Meta:
         model = SolicitudServicio

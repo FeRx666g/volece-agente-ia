@@ -3,9 +3,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 from django.db.models import Sum
-from .models import Finanza
-from .serializers import FinanzaSerializer
+from .models import Finanza, TipoFinanza
+from .serializers import FinanzaSerializer, TipoFinanzaSerializer
 from gestion_usuarios.permissions import IsAdminRol
+
+class TipoFinanzaViewSet(viewsets.ModelViewSet):
+    queryset = TipoFinanza.objects.all()
+    serializer_class = TipoFinanzaSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated, IsAdminRol]
 
 class FinanzaViewSet(viewsets.ModelViewSet):
     queryset = Finanza.objects.all()
@@ -26,7 +32,10 @@ class FinanzaViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(fecha__range=[fecha_inicio, fecha_fin])
         
         if tipo:
-            queryset = queryset.filter(tipo=tipo)
+            if tipo.isdigit():
+                queryset = queryset.filter(tipo__id=tipo)
+            else:
+                queryset = queryset.filter(tipo__nombre=tipo)
             
         return queryset
 
@@ -47,8 +56,8 @@ class BalanceView(APIView):
         if fecha_inicio and fecha_fin:
             queryset = queryset.filter(fecha__range=[fecha_inicio, fecha_fin])
 
-        total_ingresos = queryset.filter(tipo='INGRESO').aggregate(Sum('monto'))['monto__sum'] or 0
-        total_gastos = queryset.filter(tipo='GASTO').aggregate(Sum('monto'))['monto__sum'] or 0
+        total_ingresos = queryset.filter(tipo__nombre='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
+        total_gastos = queryset.filter(tipo__nombre='Gasto').aggregate(Sum('monto'))['monto__sum'] or 0
 
         balance = total_ingresos - total_gastos
 

@@ -21,6 +21,8 @@ const AdminSolicitudes = () => {
   const [editingTypeId, setEditingTypeId] = useState(null);
   const [tempTipo, setTempTipo] = useState('');
 
+  const [autoGenerating, setAutoGenerating] = useState(false);
+
   const generarTodasLasRecomendaciones = async () => {
     const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
 
@@ -62,7 +64,33 @@ const AdminSolicitudes = () => {
     }
   };
 
-  const fetchSolicitudes = async () => {
+  const autoGenerarFaltantes = async (lista, headers) => {
+    const faltantes = lista.filter(s => s.estado === 'pendiente' && !s.predicciones.some(p => p.esIA));
+
+    if (faltantes.length === 0) return;
+
+    setAutoGenerating(true);
+    try {
+      await Promise.all(faltantes.map(s =>
+        axios.post(
+          API_ASIGNAR_TURNO_URL,
+          {
+            id_solicitud: s.id,
+            tipo_vehiculo: s.tipo_vehiculo
+          },
+          { headers }
+        )
+      ));
+
+      await fetchSolicitudes(true);
+    } catch (err) {
+      setError("Sin conexión al servidor");
+    } finally {
+      setAutoGenerating(false);
+    }
+  };
+
+  const fetchSolicitudes = async (skipAutoVal = false) => {
     setLoading(true);
     const token = localStorage.getItem('access');
     if (!token) {
@@ -81,6 +109,10 @@ const AdminSolicitudes = () => {
 
       setSolicitudes(solicitudesProcesadas);
       setError(null);
+
+      if (!skipAutoVal) {
+        autoGenerarFaltantes(solicitudesProcesadas, headers);
+      }
     } catch (err) {
       setError('Error al cargar solicitudes');
       setSolicitudes([]);
@@ -159,7 +191,7 @@ const AdminSolicitudes = () => {
                 vehiculo_id: null,
                 vehiculo_info: 'Sin asignar',
                 probabilidad: null,
-                comentario: 'Manual',
+                comentario: 'Sin comentario',
                 esIA: false,
               })),
           ];
@@ -171,7 +203,7 @@ const AdminSolicitudes = () => {
             vehiculo_id: null,
             vehiculo_info: 'Sin asignar',
             probabilidad: null,
-            comentario: 'Manual',
+            comentario: 'Sin comentario',
             esIA: false,
           }));
         }
@@ -212,7 +244,14 @@ const AdminSolicitudes = () => {
       await fetchSolicitudes();
 
     } catch (error) {
-      alert("Error generando recomendación");
+      console.error(error);
+      if (error.response && error.response.status === 500) {
+        alert("Sin conexión al servidor por favor");
+      } else if (error.code === 'ERR_NETWORK') {
+        alert("Sin conexión al servidor por favor");
+      } else {
+        alert("Error generando recomendación. Verifique la conexión.");
+      }
     } finally {
       setUpdatingId(null);
     }
@@ -472,49 +511,70 @@ const AdminSolicitudes = () => {
                           ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                {s.predicciones && s.predicciones.length > 0 && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <select
-                                      className="vlc-sol-select"
-                                      value={s.selectedUniqueId || ''}
-                                      onChange={(e) => {
-                                        const nuevoUniqueId = e.target.value;
-                                        const nuevasSolicitudes = solicitudes.map((sol) => {
-                                          if (sol.id === s.id) return { ...sol, selectedUniqueId: nuevoUniqueId };
-                                          return sol;
-                                        });
-                                        setSolicitudes(nuevasSolicitudes);
+                                {autoGenerating && s.estado === 'pendiente' && (!s.predicciones || !s.predicciones.some(p => p.esIA)) ? (
+                                  <div className="vlc-sol-loading-ai">
+                                    <div className="vlc-sol-spinner"></div>
+                                    <span>Cargando recomendación...</span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    {s.predicciones && s.predicciones.length > 0 && (
+                                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                        <select
+                                          className="vlc-sol-select"
+                                          value={s.selectedUniqueId || ''}
+                                          onChange={(e) => {
+                                            const nuevoUniqueId = e.target.value;
+                                            const nuevasSolicitudes = solicitudes.map((sol) => {
+                                              if (sol.id === s.id) return { ...sol, selectedUniqueId: nuevoUniqueId };
+                                              return sol;
+                                            });
+                                            setSolicitudes(nuevasSolicitudes);
+                                          }}
+                                          disabled={updatingId === s.id}
+                                        >
+                                          {s.predicciones.map((pred) => {
+                                            const tieneProb = typeof pred.probabilidad === 'number';
+                                            const porcentaje = tieneProb ? ` (${Math.round(pred.probabilidad * 100)}%)` : '';
+                                            return (
+                                              <option key={pred.id_unico} value={pred.id_unico}>
+                                                {pred.transportista_nombre} - {pred.vehiculo_info} {porcentaje}
+                                              </option>
+                                            );
+                                          })}
+                                        </select>
+                                      </div>
+                                    )}
+
+                                    <button
+                                      className="vlc-sol-btn-generate"
+                                      title="Generar/Regenerar recomendación IA"
+                                      style={{
+                                        backgroundColor: '#4f46e5', // Always blue (primary action) or maybe keep yellow for distinction?
+                                        // User wants "same process". Uniformity suggests single color. 
+                                        // But maybe 'Reload' implies yellow?
+                                        // Let's use the standard primary blue for consistent "Action" look, or yellow if they prefer the 'reload' look.
+                                        // The user said "el botón de recargar", which is the yellow one usually.
+                                        // But Blue is nicer for "New".
+                                        // I'll keep the conditional color for "State Awareness" but Unify the ICON and Text.
+                                        // Actually, if I use the icon, it effectively looks like a "Reload" button.
+                                        backgroundColor: s.predicciones && s.predicciones.some(p => p.esIA) ? '#facc15' : '#4f46e5',
+                                        color: s.predicciones && s.predicciones.some(p => p.esIA) ? 'black' : 'white',
+                                        padding: '5px 12px',
+                                        borderRadius: '5px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '1.1rem', // Slightly larger for icon
+                                        lineHeight: '1',
+                                        whiteSpace: 'nowrap'
                                       }}
+                                      onClick={() => generarRecomendacionIndividual(s.id, s.tipo_vehiculo)}
                                       disabled={updatingId === s.id}
                                     >
-                                      {s.predicciones.map((pred) => {
-                                        const tieneProb = typeof pred.probabilidad === 'number';
-                                        const porcentaje = tieneProb ? ` (${Math.round(pred.probabilidad * 100)}%)` : '';
-                                        return (
-                                          <option key={pred.id_unico} value={pred.id_unico}>
-                                            {pred.transportista_nombre} - {pred.vehiculo_info} {porcentaje}
-                                          </option>
-                                        );
-                                      })}
-                                    </select>
-                                  </div>
+                                      {updatingId === s.id ? '...' : '↻'}
+                                    </button>
+                                  </>
                                 )}
-
-                                <button
-                                  className="vlc-sol-btn-generate"
-                                  title={s.predicciones && s.predicciones.length > 0 ? "Regenerar recomendación" : "Generar recomendación"}
-                                  style={{
-                                    backgroundColor: s.predicciones && s.predicciones.length > 0 ? '#facc15' : '#4f46e5',
-                                    color: s.predicciones && s.predicciones.length > 0 ? 'black' : 'white',
-                                    padding: '5px 8px',
-                                    borderRadius: '5px', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                  onClick={() => generarRecomendacionIndividual(s.id, s.tipo_vehiculo)}
-                                  disabled={updatingId === s.id}
-                                >
-                                  {updatingId === s.id ? '...' : (s.predicciones && s.predicciones.length > 0 ? '↻' : 'Generar')}
-                                </button>
                               </div>
                             </div>
                           )

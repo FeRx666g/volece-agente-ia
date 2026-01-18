@@ -6,6 +6,8 @@ export default function ListadoVehiculos() {
   const [vehiculos, setVehiculos] = useState([]);
   const [transportistas, setTransportistas] = useState([]);
   const [tiposVehiculos, setTiposVehiculos] = useState([]);
+  const [tiposCombustibles, setTiposCombustibles] = useState([]);
+  const [estadosVehiculo, setEstadosVehiculo] = useState([]);
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscarPlaca, setBuscarPlaca] = useState('');
@@ -18,8 +20,7 @@ export default function ListadoVehiculos() {
   const [expandedObservationId, setExpandedObservationId] = useState(null);
 
   useEffect(() => {
-    cargarTransportistas();
-    cargarTipos();
+    cargarAuxiliares();
   }, []);
 
   useEffect(() => {
@@ -43,41 +44,32 @@ export default function ListadoVehiculos() {
       .finally(() => setLoading(false));
   };
 
-  const cargarTransportistas = () => {
-    axios.get('http://localhost:8000/api/usuarios/transportistas/', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
-    })
-      .then(res => {
-        if (Array.isArray(res.data)) {
-          setTransportistas(res.data);
-        } else if (res.data && Array.isArray(res.data.results)) {
-          setTransportistas(res.data.results);
-        } else {
-          setTransportistas([]);
-        }
-      })
-      .catch(() => setTransportistas([]));
+  const cargarAuxiliares = () => {
+    const auth = { headers: { Authorization: `Bearer ${localStorage.getItem('access')}` } };
+    Promise.all([
+      axios.get('http://localhost:8000/api/usuarios/transportistas/', auth),
+      axios.get('http://localhost:8000/api/vehiculos/tipos/', auth),
+      axios.get('http://localhost:8000/api/vehiculos/tipos-combustible/', auth),
+      axios.get('http://localhost:8000/api/vehiculos/estados-vehiculo/', auth)
+    ]).then(axios.spread((transRes, tiposRes, combRes, estadosRes) => {
+      setTransportistas(transRes.data.results || transRes.data || []);
+      setTiposVehiculos(tiposRes.data.results || tiposRes.data || []);
+      setTiposCombustibles(combRes.data.results || combRes.data || []);
+      setEstadosVehiculo(estadosRes.data.results || estadosRes.data || []);
+    })).catch(console.error);
   };
-
-  const cargarTipos = () => {
-    axios.get('http://localhost:8000/api/vehiculos/tipos/', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
-    })
-      .then(res => {
-        if (Array.isArray(res.data)) setTiposVehiculos(res.data);
-        else if (res.data.results) setTiposVehiculos(res.data.results);
-      })
-      .catch(console.error);
-  };
-
 
   const handleEstadoChange = (vehiculoId, nuevoEstado) => {
+    // Admin uses the standard update endpoint
     axios.patch(`http://localhost:8000/api/vehiculos/${vehiculoId}/`,
       { estado: nuevoEstado },
       { headers: { Authorization: `Bearer ${localStorage.getItem('access')}` } }
     )
       .then(() => cargarVehiculos())
-      .catch(() => alert('Error al actualizar estado'));
+      .catch((err) => {
+        console.error(err);
+        alert('Error al actualizar estado');
+      });
   };
 
   const abrirModalEditar = (vehiculo) => {
@@ -92,7 +84,10 @@ export default function ListadoVehiculos() {
       anio: vehiculo.anio,
       color: vehiculo.color,
       tonelaje: vehiculo.tonelaje,
-      combustible: vehiculo.combustible,
+      // Use combustible_nuevo (ID)
+      combustible_nuevo: vehiculo.combustible_nuevo || '',
+      // Fallback to text match if needed or just empty
+
       numero_motor: vehiculo.numero_motor || '',
       numero_chasis: vehiculo.numero_chasis || '',
       fecha_adquisicion: vehiculo.fecha_adquisicion || '',
@@ -133,7 +128,13 @@ export default function ListadoVehiculos() {
     formData.append('anio', editData.anio);
     formData.append('color', editData.color);
     formData.append('tonelaje', editData.tonelaje);
-    formData.append('combustible', editData.combustible);
+
+    // Send ID
+    formData.append('combustible_nuevo', editData.combustible_nuevo);
+    // Compatibility: Send text name too
+    const combName = tiposCombustibles.find(c => c.id == editData.combustible_nuevo)?.nombre || 'DIESEL';
+    formData.append('combustible', combName);
+
     formData.append('numero_motor', editData.numero_motor);
     formData.append('numero_chasis', editData.numero_chasis);
     formData.append('fecha_adquisicion', editData.fecha_adquisicion);
@@ -159,9 +160,12 @@ export default function ListadoVehiculos() {
       });
   };
 
+
+
   const vehiculosFiltrados = (vehiculos ?? []).filter(v => {
+    // Use estado (ID) for filtering if filter is ID, or map it.
     return (filtroTipo === '' || v.tipo_vehiculo == filtroTipo) &&
-      (filtroEstado === '' || v.estado === filtroEstado) &&
+      (filtroEstado === '' || v.estado == filtroEstado) &&
       (buscarPlaca === '' || v.placa.toLowerCase().includes(buscarPlaca.toLowerCase()));
   });
 
@@ -190,9 +194,9 @@ export default function ListadoVehiculos() {
           <label>Estado</label>
           <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
             <option value="">Todos</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="INACTIVO">Inactivo</option>
-            <option value="MANTENIMIENTO">Mantenimiento</option>
+            {estadosVehiculo.map(e => (
+              <option key={e.id} value={e.id}>{e.nombre}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -255,13 +259,13 @@ export default function ListadoVehiculos() {
                     </td>
                     <td>
                       <select
-                        className={`vlc-vls-status-select ${vehiculo.estado.toLowerCase()}`}
-                        value={vehiculo.estado}
+                        className={`vlc-vls-status-select ${vehiculo.estado_nombre ? vehiculo.estado_nombre.toUpperCase() : 'ACTIVO'}`}
+                        value={vehiculo.estado || ''}
                         onChange={(e) => handleEstadoChange(vehiculo.id, e.target.value)}
                       >
-                        <option value="ACTIVO">Activo</option>
-                        <option value="INACTIVO">Inactivo</option>
-                        <option value="MANTENIMIENTO">Mantenimiento</option>
+                        {estadosVehiculo.map(est => (
+                          <option key={est.id} value={est.id}>{est.nombre}</option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -269,13 +273,14 @@ export default function ListadoVehiculos() {
                         Editar
                       </button>
                     </td>
-                  </tr>
+                  </tr >
                 ))
-              )}
-            </tbody>
-          </table>
+              )
+              }
+            </tbody >
+          </table >
         )}
-      </div>
+      </div >
 
       <div className="vlc-vls-pagination">
         <button disabled={pagina === 1} onClick={() => setPagina(pagina - 1)} className="vlc-vls-page-btn">Anterior</button>
@@ -283,130 +288,131 @@ export default function ListadoVehiculos() {
         <button disabled={pagina === totalPaginas} onClick={() => setPagina(pagina + 1)} className="vlc-vls-page-btn">Siguiente</button>
       </div>
 
-      {modalAbierto && editData && (
-        <div className="vlc-modal-overlay">
-          <div className="vlc-modal-content">
-            <div className="vlc-modal-header">
-              <h3>Editar Vehículo</h3>
-              <button onClick={cerrarModal} className="vlc-modal-close">&times;</button>
-            </div>
-            <form onSubmit={guardarCambios}>
-              <div className="vlc-modal-body">
-                <div className="vlc-modal-photo-section">
-                  <div className="vlc-photo-preview">
-                    {previewFoto ? (
-                      <img src={previewFoto} alt="Preview" />
-                    ) : editData.fotoActual ? (
-                      <img src={`${editData.fotoActual}`} alt="Actual" />
-                    ) : (
-                      <div className="vlc-no-photo">Sin Foto</div>
-                    )}
+      {
+        modalAbierto && editData && (
+          <div className="vlc-modal-overlay">
+            <div className="vlc-modal-content">
+              <div className="vlc-modal-header">
+                <h3>Editar Vehículo</h3>
+                <button onClick={cerrarModal} className="vlc-modal-close">&times;</button>
+              </div>
+              <form onSubmit={guardarCambios}>
+                <div className="vlc-modal-body">
+                  <div className="vlc-modal-photo-section">
+                    <div className="vlc-photo-preview">
+                      {previewFoto ? (
+                        <img src={previewFoto} alt="Preview" />
+                      ) : editData.fotoActual ? (
+                        <img src={`${editData.fotoActual}`} alt="Actual" />
+                      ) : (
+                        <div className="vlc-no-photo">Sin Foto</div>
+                      )}
+                    </div>
+                    <label className="vlc-file-upload">
+                      Cambiar Foto
+                      <input type="file" accept="image/*" onChange={handleFileChange} />
+                    </label>
                   </div>
-                  <label className="vlc-file-upload">
-                    Cambiar Foto
-                    <input type="file" accept="image/*" onChange={handleFileChange} />
-                  </label>
-                </div>
 
-                <div className="vlc-modal-grid">
-                  <div className="vlc-group full-width">
-                    <label>Socio Transportista</label>
-                    <select
-                      name="transportista"
-                      value={editData.transportista || ""}
+                  <div className="vlc-modal-grid">
+                    <div className="vlc-group full-width">
+                      <label>Socio Transportista</label>
+                      <select
+                        name="transportista"
+                        value={editData.transportista || ""}
+                        onChange={handleEditChange}
+                        required
+                      >
+                        <option value="">Seleccione un socio...</option>
+                        {transportistas.map(t => (
+                          <option key={t.id} value={t.id}>
+                            {t.nombre} {t.apellido}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <h4 className="vlc-modal-subtitle">Especificaciones Técnicas</h4>
+                  <div className="vlc-modal-grid">
+                    <div className="vlc-group">
+                      <label>Tipo</label>
+                      <select name="tipo" value={editData.tipo} onChange={handleEditChange}>
+                        <option value="">Seleccione...</option>
+                        {tiposVehiculos.map(t => (
+                          <option key={t.id} value={t.id}>{t.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="vlc-group">
+                      <label>Combustible</label>
+                      <select name="combustible_nuevo" value={editData.combustible_nuevo} onChange={handleEditChange}>
+                        {tiposCombustibles.map(c => (
+                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="vlc-group">
+                      <label>Marca</label>
+                      <input type="text" name="marca" value={editData.marca} onChange={handleEditChange} required />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Modelo</label>
+                      <input type="text" name="modelo" value={editData.modelo} onChange={handleEditChange} required />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Placa</label>
+                      <input type="text" name="placa" value={editData.placa} onChange={handleEditChange} required />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Año</label>
+                      <input type="number" name="anio" value={editData.anio} onChange={handleEditChange} required />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Color</label>
+                      <input type="text" name="color" value={editData.color} onChange={handleEditChange} required />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Tonelaje (t)</label>
+                      <input type="number" step="0.01" name="tonelaje" value={editData.tonelaje} onChange={handleEditChange} required />
+                    </div>
+                  </div>
+
+                  <h4 className="vlc-modal-subtitle">Identificación y Detalles</h4>
+                  <div className="vlc-modal-grid">
+                    <div className="vlc-group">
+                      <label>Nº Motor</label>
+                      <input type="text" name="numero_motor" value={editData.numero_motor} onChange={handleEditChange} />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Nº Chasis</label>
+                      <input type="text" name="numero_chasis" value={editData.numero_chasis} onChange={handleEditChange} />
+                    </div>
+                    <div className="vlc-group">
+                      <label>Fecha Adquisición</label>
+                      <input type="date" name="fecha_adquisicion" value={editData.fecha_adquisicion} onChange={handleEditChange} />
+                    </div>
+                  </div>
+                  <div className="vlc-group full-width" style={{ marginTop: '10px' }}>
+                    <label>Observaciones</label>
+                    <textarea
+                      name="observaciones"
+                      value={editData.observaciones}
                       onChange={handleEditChange}
-                      required
-                    >
-                      <option value="">Seleccione un socio...</option>
-                      {transportistas.map(t => (
-                        <option key={t.id} value={t.id}>
-                          {t.nombre} {t.apellido}
-                        </option>
-                      ))}
-                    </select>
+                      style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '8px', minHeight: '80px' }}
+                    />
                   </div>
-                </div>
 
-                <h4 className="vlc-modal-subtitle">Especificaciones Técnicas</h4>
-                <div className="vlc-modal-grid">
-                  <div className="vlc-group">
-                    <label>Tipo</label>
-                    <select name="tipo" value={editData.tipo} onChange={handleEditChange}>
-                      <option value="">Seleccione...</option>
-                      {tiposVehiculos.map(t => (
-                        <option key={t.id} value={t.id}>{t.nombre}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="vlc-group">
-                    <label>Combustible</label>
-                    <select name="combustible" value={editData.combustible} onChange={handleEditChange}>
-                      <option value="DIESEL">Diesel</option>
-                      <option value="GASOLINA">Gasolina</option>
-                      <option value="ELECTRICO">Eléctrico</option>
-                      <option value="HIBRIDO">Híbrido</option>
-                    </select>
-                  </div>
-                  <div className="vlc-group">
-                    <label>Marca</label>
-                    <input type="text" name="marca" value={editData.marca} onChange={handleEditChange} required />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Modelo</label>
-                    <input type="text" name="modelo" value={editData.modelo} onChange={handleEditChange} required />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Placa</label>
-                    <input type="text" name="placa" value={editData.placa} onChange={handleEditChange} required />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Año</label>
-                    <input type="number" name="anio" value={editData.anio} onChange={handleEditChange} required />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Color</label>
-                    <input type="text" name="color" value={editData.color} onChange={handleEditChange} required />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Tonelaje (t)</label>
-                    <input type="number" step="0.01" name="tonelaje" value={editData.tonelaje} onChange={handleEditChange} required />
-                  </div>
                 </div>
-
-                <h4 className="vlc-modal-subtitle">Identificación y Detalles</h4>
-                <div className="vlc-modal-grid">
-                  <div className="vlc-group">
-                    <label>Nº Motor</label>
-                    <input type="text" name="numero_motor" value={editData.numero_motor} onChange={handleEditChange} />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Nº Chasis</label>
-                    <input type="text" name="numero_chasis" value={editData.numero_chasis} onChange={handleEditChange} />
-                  </div>
-                  <div className="vlc-group">
-                    <label>Fecha Adquisición</label>
-                    <input type="date" name="fecha_adquisicion" value={editData.fecha_adquisicion} onChange={handleEditChange} />
-                  </div>
+                <div className="vlc-modal-footer">
+                  <button type="button" onClick={cerrarModal} className="vlc-btn-cancel">Cancelar</button>
+                  <button type="submit" className="vlc-btn-save">Guardar Cambios</button>
                 </div>
-                <div className="vlc-group full-width" style={{ marginTop: '10px' }}>
-                  <label>Observaciones</label>
-                  <textarea
-                    name="observaciones"
-                    value={editData.observaciones}
-                    onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '8px', minHeight: '80px' }}
-                  />
-                </div>
-
-              </div>
-              <div className="vlc-modal-footer">
-                <button type="button" onClick={cerrarModal} className="vlc-btn-cancel">Cancelar</button>
-                <button type="submit" className="vlc-btn-save">Guardar Cambios</button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

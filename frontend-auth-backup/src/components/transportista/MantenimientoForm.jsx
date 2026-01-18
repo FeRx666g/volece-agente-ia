@@ -4,8 +4,9 @@ import './MantenimientoForm.css';
 
 export default function MantenimientoForm({ onMantenimientoRegistrado }) {
   const [vehiculos, setVehiculos] = useState([]);
+  const [tiposMantenimiento, setTiposMantenimiento] = useState([]);
 
-  const [tipo, setTipo] = useState('CAMBIO_ACEITE');
+  const [tipo, setTipo] = useState('');
   const [kilometrajeActual, setKilometrajeActual] = useState('');
   const [kilometrajeProximo, setKilometrajeProximo] = useState('');
   const [observaciones, setObservaciones] = useState('');
@@ -15,22 +16,30 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
   const [kmBase, setKmBase] = useState(0);
   const [vehiculoId, setVehiculoId] = useState('');
 
-  const tiposMantenimiento = [
-    { value: 'CAMBIO_ACEITE', label: 'Cambio de Aceite' },
-    { value: 'FILTROS', label: 'Cambio de Filtros' },
-    { value: 'FRENOS', label: 'Revisión de Frenos' },
-    { value: 'LLANTAS', label: 'Revisión de Llantas' },
-    { value: 'SUSPENSION', label: 'Revisión de Suspensión' },
-    { value: 'ELECTRICO', label: 'Sistema Eléctrico' },
-    { value: 'REFRIGERACION', label: 'Sistema de Refrigeración' },
-    { value: 'OTRO', label: 'Otro' }
-  ];
-
   const token = localStorage.getItem('access');
 
   useEffect(() => {
     obtenerVehiculos();
+    obtenerTiposMantenimiento();
   }, []);
+
+  const obtenerTiposMantenimiento = async () => {
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/vehiculos/tipos-mantenimiento/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const lista = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      setTiposMantenimiento(lista);
+
+      if (lista.length > 0) {
+        setTipo(lista[0].id);
+      }
+    } catch (err) {
+      console.error("Error cargando tipos de mantenimiento", err);
+      setTiposMantenimiento([]);
+    }
+  };
 
   useEffect(() => {
     if (vehiculoId && vehiculos.length > 0) {
@@ -84,7 +93,7 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
       await axios.post(
         'http://127.0.0.1:8000/api/vehiculos/transportista/mantenimientos',
         {
-          tipo,
+          tipo, // This is now the ID
           kilometraje_actual: kmActual,
           kilometraje_proximo: kmProximo,
           fecha_mantenimiento: fecha,
@@ -96,7 +105,9 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
 
       alert('Mantenimiento registrado exitosamente.');
 
-      setTipo('CAMBIO_ACEITE');
+      // setTipo('CAMBIO_ACEITE'); // No longer valid default
+      if (tiposMantenimiento.length > 0) setTipo(tiposMantenimiento[0].id);
+
       setKilometrajeActual('');
       setKilometrajeProximo('');
       setObservaciones('');
@@ -147,7 +158,7 @@ export default function MantenimientoForm({ onMantenimientoRegistrado }) {
               <label>Tipo de Servicio</label>
               <select value={tipo} onChange={e => setTipo(e.target.value)}>
                 {tiposMantenimiento.map(op => (
-                  <option key={op.value} value={op.value}>{op.label}</option>
+                  <option key={op.id} value={op.id}>{op.nombre}</option>
                 ))}
               </select>
             </div>

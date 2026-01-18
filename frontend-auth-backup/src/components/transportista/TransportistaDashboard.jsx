@@ -121,7 +121,7 @@ export default function TransportistaDashboard() {
           </div>
           <div className={`vlc-tra-nav-item ${activeTab === 'alertas' ? 'active' : ''}`} onClick={() => setActiveTab('alertas')}>
             <CIcon icon={cilBell} className="vlc-tra-icon" />
-            <span>Viajes y Alertas</span>
+            <span>Mis Viajes</span>
           </div>
           <div className={`vlc-tra-nav-item ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
             <CIcon icon={cilHistory} className="vlc-tra-icon" />
@@ -196,7 +196,21 @@ export default function TransportistaDashboard() {
                       <div className="vlc-tra-info-item"><strong>Año:</strong> <span>{vehiculoActual.anio}</span></div>
                       <div className="vlc-tra-info-item"><strong>Color:</strong> <span>{vehiculoActual.color}</span></div>
                       <div className="vlc-tra-info-item"><strong>Tonelaje:</strong> <span>{vehiculoActual.tonelaje} t</span></div>
-                      <div className="vlc-tra-info-item"><strong>Combustible:</strong> <span>{vehiculoActual.combustible}</span></div>
+                      <div className="vlc-tra-info-item"><strong>Combustible:</strong> <span>{vehiculoActual.combustible_nombre || vehiculoActual.combustible}</span></div>
+                      <div className="vlc-tra-info-item" style={{ gridColumn: '1 / -1', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #eee' }}>
+                        <strong>Estado Actual:</strong>
+                        <span style={{
+                          marginLeft: '10px',
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          fontSize: '0.9rem',
+                          fontWeight: 'bold',
+                          backgroundColor: vehiculoActual.estado_nombre?.toUpperCase() === 'ACTIVO' ? '#dcfce7' : '#fee2e2',
+                          color: vehiculoActual.estado_nombre?.toUpperCase() === 'ACTIVO' ? '#166534' : '#991b1b'
+                        }}>
+                          {vehiculoActual.estado_nombre || 'Desconocido'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -304,17 +318,7 @@ export default function TransportistaDashboard() {
                 </div>
               </div>
 
-              {alertas.length > 0 && (
-                <div className="vlc-tra-alerts-section">
-                  <h3>Notificaciones del Vehículo</h3>
-                  {alertas.map((alerta, idx) => (
-                    <div key={idx} className="vlc-tra-alert-item">
-                      <CIcon icon={cilBell} className="vlc-tra-alert-icon" />
-                      <span>{alerta.mensaje}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Alertas section removed as per user request */}
             </div>
           )}
         </section>

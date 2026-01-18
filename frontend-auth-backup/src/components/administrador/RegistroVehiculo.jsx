@@ -5,9 +5,10 @@ import './estilos/RegistroVehiculo.css';
 export default function RegistroVehiculo() {
   const [transportistas, setTransportistas] = useState([]);
   const [tiposVehiculos, setTiposVehiculos] = useState([]);
+  const [tiposCombustibles, setTiposCombustibles] = useState([]);
   const [formData, setFormData] = useState({
     transportista: '', tipo_vehiculo: '', marca: '', modelo: '',
-    placa: '', anio: '', color: '', tonelaje: '', combustible: 'DIESEL',
+    placa: '', anio: '', color: '', tonelaje: '', combustible: '',
     numero_motor: '', numero_chasis: '', fecha_adquisicion: '',
     observaciones: '', estado: 'ACTIVO',
     foto: null
@@ -22,12 +23,43 @@ export default function RegistroVehiculo() {
     const fetchTipos = axios.get('http://localhost:8000/api/vehiculos/tipos/', {
       headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
     });
+    const fetchCombustibles = axios.get('http://localhost:8000/api/vehiculos/tipos-combustible/', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
+    });
+    const fetchEstados = axios.get('http://localhost:8000/api/vehiculos/estados-vehiculo/', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
+    });
 
-    Promise.all([fetchTransportistas, fetchTipos])
-      .then(axios.spread((transRes, tiposRes) => {
+    Promise.all([fetchTransportistas, fetchTipos, fetchCombustibles, fetchEstados])
+      .then(axios.spread((transRes, tiposRes, combRes, estRes) => {
         setTransportistas(transRes.data);
-        const tiposData = tiposRes.data.results || tiposRes.data;
-        setTiposVehiculos(Array.isArray(tiposData) ? tiposData : []);
+        setTiposVehiculos(tiposRes.data.results || tiposRes.data);
+        setTiposCombustibles(combRes.data.results || combRes.data);
+
+        const estados = estRes.data.results || estRes.data;
+        // setEstados(estados); // If needed globally
+
+        // Set default combustible
+        const combustibles = combRes.data.results || combRes.data;
+        let defaultCombustible = '';
+        if (combustibles.length > 0) {
+          defaultCombustible = combustibles[0].id;
+        }
+
+        // Set default estado (ACTIVO)
+        let defaultEstado = '';
+        const estadoActivo = estados.find(e => (e.codigo === 'ACTIVO' || e.nombre.toUpperCase() === 'ACTIVO'));
+        if (estadoActivo) {
+          defaultEstado = estadoActivo.id;
+        } else if (estados.length > 0) {
+          defaultEstado = estados[0].id;
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          combustible: defaultCombustible,
+          estado: defaultEstado
+        }));
       }))
       .catch(err => console.error(err));
   }, []);
@@ -50,6 +82,9 @@ export default function RegistroVehiculo() {
     if (!formData.tipo_vehiculo) nuevosErrores.tipo_vehiculo = "Seleccione el tipo de vehículo";
     if (!formData.marca) nuevosErrores.marca = "Ingrese la marca";
     if (!formData.placa) nuevosErrores.placa = "Ingrese la placa";
+    // Check combustible ID
+    if (!formData.combustible) nuevosErrores.combustible = "Seleccione combustible";
+
     if (isNaN(tonelaje) || tonelaje <= 3.5 || tonelaje > 50)
       nuevosErrores.tonelaje = "Debe estar entre 3.5 y 50 t";
 
@@ -64,7 +99,7 @@ export default function RegistroVehiculo() {
     const dataToSend = new FormData();
     Object.keys(formData).forEach(key => {
       if (key !== 'foto') {
-        const val = formData[key];
+        let val = formData[key];
         if (val !== '' && val !== null && val !== undefined) {
           dataToSend.append(key, val);
         }
@@ -83,22 +118,44 @@ export default function RegistroVehiculo() {
     })
       .then(() => {
         alert('Vehículo registrado exitosamente');
-        setFormData({
+        // Reset form but keep defaults if possible, or trigger fetch? 
+        // Simpler to just reset and let user reload if they want defaults reset, or just clear non-defaults
+        // We will just clear main fields.
+        setFormData(prev => ({
           transportista: '', tipo_vehiculo: '', marca: '', modelo: '',
-          placa: '', anio: '', color: '', tonelaje: '', combustible: 'DIESEL',
+          placa: '', anio: '', color: '', tonelaje: '',
+          combustible: prev.combustible, // Keep last selected or default
           numero_motor: '', numero_chasis: '', fecha_adquisicion: '',
-          observaciones: '', estado: 'ACTIVO',
+          observaciones: '', estado: prev.estado, // Keep default state
           foto: null
-        });
+        }));
         setErrors({});
       })
       .catch(err => {
         console.error(err);
-        if (err.response && err.response.data && err.response.data.placa) {
-          setErrors(prev => ({ ...prev, placa: 'Esta placa ya se encuentra registrada.' }));
-          alert('Error: La placa ingresada ya existe en el sistema.');
+        if (err.response) {
+          const { data, status } = err.response;
+          if (status === 400) {
+            setErrors(data); // Map backend errors to fields
+
+            // Generate a readable error message
+            let msg = 'Error de validación. Por favor revise los campos resaltados.';
+            if (data.placa) msg = `Error en Placa: ${data.placa.join(' ')}`;
+            else if (data.non_field_errors) msg = data.non_field_errors.join(' ');
+            else if (Object.keys(data).length > 0) {
+              // Show first error found
+              const key = Object.keys(data)[0];
+              const val = Array.isArray(data[key]) ? data[key][0] : data[key];
+              msg = `Error en ${key}: ${val}`;
+            }
+            alert(msg);
+          } else if (status === 401) {
+            alert("Sesión expirada. Por favor inicie sesión nuevamente.");
+          } else {
+            alert(`Error del servidor (${status}). Intente más tarde.`);
+          }
         } else {
-          alert('Error al registrar el vehículo. Verifique los datos.');
+          alert('Error de conexión. Verifique su red.');
         }
       });
   };
@@ -186,10 +243,10 @@ export default function RegistroVehiculo() {
               <div className="vlc-reg-group">
                 <label>Tipo de Combustible<span style={{ color: 'red' }}> *</span></label>
                 <select name="combustible" value={formData.combustible} onChange={handleChange} required>
-                  <option value="DIESEL">Diesel</option>
-                  <option value="GASOLINA">Gasolina</option>
-                  <option value="ELECTRICO">Eléctrico</option>
-                  <option value="HIBRIDO">Híbrido</option>
+                  <option value="">Seleccione...</option>
+                  {tiposCombustibles.map(c => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
                 </select>
               </div>
 

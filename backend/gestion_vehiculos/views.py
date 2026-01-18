@@ -1,14 +1,33 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Vehiculo, Mantenimiento, TipoVehiculo
-from .serializer import VehiculoSerializer, VehiculoTransportistaSerializer, MantenimientoSerializer, TipoVehiculoSerializer
+from django.db import models
+from .models import Vehiculo, Mantenimiento, TipoVehiculo, TipoMantenimiento, TipoCombustible, EstadoVehiculo
+from .serializer import (
+    VehiculoSerializer, VehiculoTransportistaSerializer, MantenimientoSerializer, 
+    TipoVehiculoSerializer, TipoMantenimientoSerializer, TipoCombustibleSerializer, EstadoVehiculoSerializer
+)
 from gestion_usuarios.permissions import IsAdminRol
 
 class TipoVehiculoViewSet(viewsets.ModelViewSet):
     queryset = TipoVehiculo.objects.all()
     serializer_class = TipoVehiculoSerializer
     permission_classes = [permissions.IsAuthenticated] 
+
+class TipoCombustibleViewSet(viewsets.ModelViewSet):
+    queryset = TipoCombustible.objects.all()
+    serializer_class = TipoCombustibleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class EstadoVehiculoViewSet(viewsets.ModelViewSet):
+    queryset = EstadoVehiculo.objects.all()
+    serializer_class = EstadoVehiculoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class TipoMantenimientoViewSet(viewsets.ModelViewSet):
+    queryset = TipoMantenimiento.objects.all()
+    serializer_class = TipoMantenimientoSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
@@ -31,17 +50,26 @@ class VehiculoEstadoUpdateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request):
+        # Frontend might send the ID or valid code/name?
+        # Let's support both or standardized input. If frontend sends 'ACTIVO', we lookup by codigo or name.
         nuevo_estado = request.data.get('estado')
 
-        if nuevo_estado not in ['ACTIVO', 'INACTIVO', 'MANTENIMIENTO']:
-            return Response({'error': 'Estado no válido'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if isinstance(nuevo_estado, int) or (isinstance(nuevo_estado, str) and nuevo_estado.isdigit()):
+                estado_obj = EstadoVehiculo.objects.get(id=nuevo_estado)
+            else:
+                # Assuming 'ACTIVO' string
+                estado_obj = EstadoVehiculo.objects.get(models.Q(nombre__iexact=nuevo_estado) | models.Q(codigo__iexact=nuevo_estado))
+        except EstadoVehiculo.DoesNotExist:
+             return Response({'error': 'Estado no válido'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             vehiculo_id = request.data.get("vehiculo_id")
             vehiculo = Vehiculo.objects.get(id=vehiculo_id, transportista=request.user)
-            vehiculo.estado = nuevo_estado
+            # Update FK field
+            vehiculo.estado = estado_obj
             vehiculo.save()
-            return Response({'mensaje': f'Estado actualizado a {nuevo_estado}'}, status=status.HTTP_200_OK)
+            return Response({'mensaje': f'Estado actualizado a {estado_obj.nombre}'}, status=status.HTTP_200_OK)
         except Vehiculo.DoesNotExist:
             return Response({'error': 'Vehículo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -50,7 +78,7 @@ class MantenimientoTransportistaView(APIView):
     
     def get(self, request):
         vehiculos = Vehiculo.objects.filter(transportista=request.user)
-        mantenimientos = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento')
+        mantenimientos = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento', '-id')
         serializer = MantenimientoSerializer(mantenimientos, many=True)
         return Response(serializer.data)
     
@@ -66,9 +94,10 @@ class MantenimientoTransportistaView(APIView):
         fecha = request.data.get('fecha_mantenimiento')
         km_ingresado = int(request.data.get('kilometraje_actual'))
 
+        # Asumimos que viene el ID del tipo
         Mantenimiento.objects.create(
             vehiculo=vehiculo,
-            tipo=request.data.get('tipo'),
+            tipo_id=request.data.get('tipo'), # Assuming payload key is 'tipo' with ID
             kilometraje_actual=km_ingresado,
             kilometraje_proximo=request.data.get('kilometraje_proximo'),
             observaciones=request.data.get('observaciones'),
@@ -100,14 +129,15 @@ class AlertasMantenimientoView(APIView):
                 tipos_vistos = set()
                 
                 for mantenimiento in mantenimientos:
-                    if mantenimiento.tipo in tipos_vistos:
+                    tipo_id = mantenimiento.tipo_id
+                    if tipo_id in tipos_vistos:
                         continue 
-                    tipos_vistos.add(mantenimiento.tipo)
+                    tipos_vistos.add(tipo_id)
 
                     km_restante = mantenimiento.kilometraje_proximo - vehiculo.kilometraje_actual
 
                     if km_restante <= margen_alerta:
-                        tipo_mostrar = mantenimiento.get_tipo_display()
+                        tipo_mostrar = mantenimiento.tipo.nombre if mantenimiento.tipo else 'Mantenimiento'
                         mensaje = f"[{vehiculo.placa}] Próximo {tipo_mostrar} a los {mantenimiento.kilometraje_proximo} km. Quedan {km_restante} km."
                         alertas.append({'mensaje': mensaje})
 

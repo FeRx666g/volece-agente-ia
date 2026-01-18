@@ -142,7 +142,7 @@ def reporte_vehiculos_preview(request):
             "placa": v.placa,
             "vehiculo": f"{v.marca} {v.modelo}",
             "transportista": f"{v.transportista.first_name} {v.transportista.last_name}",
-            "estado": v.estado,
+            "estado": v.estado.nombre if v.estado else "Desconocido",
         }
         for v in qs[:50]
     ]
@@ -277,7 +277,11 @@ def reporte_vehiculos_pdf(request):
             pass
 
     if estado:
-        qs = qs.filter(estado=estado)
+        # Support ID or String (Name/Code)
+        if estado.isdigit():
+             qs = qs.filter(estado__id=estado)
+        else:
+             qs = qs.filter(Q(estado__nombre__iexact=estado) | Q(estado__codigo__iexact=estado))
 
     html = template.render({
         'vehiculos': qs,
@@ -298,7 +302,7 @@ def reporte_finanzas_pdf(request):
     fecha_fin = request.GET.get('fecha_fin')
     tipo = request.GET.get('tipo')
 
-    qs = Finanza.objects.all().order_by('-fecha')
+    qs = Finanza.objects.all().order_by('-fecha', '-id')
 
     if fecha_inicio:
         try:
@@ -315,10 +319,13 @@ def reporte_finanzas_pdf(request):
             pass
 
     if tipo:
-        qs = qs.filter(tipo=tipo)
+        if tipo.isdigit():
+            qs = qs.filter(tipo__id=tipo)
+        else:
+            qs = qs.filter(tipo__nombre=tipo)
 
-    total_ingresos = qs.filter(tipo='INGRESO').aggregate(Sum('monto'))['monto__sum'] or 0
-    total_gastos = qs.filter(tipo='GASTO').aggregate(Sum('monto'))['monto__sum'] or 0
+    total_ingresos = qs.filter(tipo__nombre='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
+    total_gastos = qs.filter(tipo__nombre='Gasto').aggregate(Sum('monto'))['monto__sum'] or 0
     balance = total_ingresos - total_gastos
 
     html = template.render({
@@ -352,7 +359,7 @@ def reporte_mantenimientos_pdf(request):
     f_fin = request.GET.get('fecha_fin', '').strip()
 
     vehiculos = Vehiculo.objects.filter(transportista=transportista)
-    qs = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento')
+    qs = Mantenimiento.objects.filter(vehiculo__in=vehiculos).order_by('-fecha_mantenimiento', '-id')
 
     if f_inicio:
         try:

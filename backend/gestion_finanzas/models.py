@@ -1,6 +1,13 @@
 from django.db import models
 from django.conf import settings 
 
+class TipoFinanza(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
 class Finanza(models.Model):
     TIPO_CHOICES = [
         ('INGRESO', 'Ingreso'),
@@ -15,7 +22,7 @@ class Finanza(models.Model):
         related_name="movimientos_financieros"
     )
 
-    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    tipo = models.ForeignKey(TipoFinanza, on_delete=models.PROTECT, related_name='finanzas', null=True, blank=True)
     
     monto = models.DecimalField(max_digits=12, decimal_places=2) 
     

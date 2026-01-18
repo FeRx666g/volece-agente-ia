@@ -193,7 +193,7 @@
                 </td>
 
                 <td>
-                    <span class="type-badge">{{ m.get_tipo_display }}</span>
+                    <span class="type-badge">{{ m.tipo.nombre|default:"-" }}</span>
                 </td>
 
                 <td class="col-km">{{ m.kilometraje_actual }}</td>

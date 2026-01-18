@@ -297,3 +297,36 @@
 .vlc-sol-col-select {
   min-width: 300px;
 }
+
+/* Spinner for AI Loading */
+.vlc-sol-loading-ai {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--vlc-green-mid);
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: #f0fdf4;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--vlc-green-mid);
+}
+
+.vlc-sol-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid var(--vlc-green-mid);
+  border-radius: 50%;
+  animation: vlcSpin 1s linear infinite;
+}
+
+@keyframes vlcSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

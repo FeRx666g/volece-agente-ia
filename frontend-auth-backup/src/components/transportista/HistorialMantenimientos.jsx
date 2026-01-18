@@ -6,7 +6,7 @@ import './HistorialMantenimientos.css';
 export default function HistorialMantenimientos() {
   const [mantenimientos, setMantenimientos] = useState([]);
   const [mapaVehiculos, setMapaVehiculos] = useState({});
-  
+
   const [filtros, setFiltros] = useState({
     fecha_inicio: '',
     fecha_fin: ''
@@ -25,7 +25,7 @@ export default function HistorialMantenimientos() {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get('http://127.0.0.1:8000/api/vehiculos/transportista/vehiculo', {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         })
       ]);
 
@@ -46,10 +46,10 @@ export default function HistorialMantenimientos() {
   const handleExportarPDF = async () => {
     try {
       const urlReporte = 'http://127.0.0.1:8000/api/reportes/mantenimientos-pdf/';
-      
+
       const response = await axios.get(urlReporte, {
         headers: { Authorization: `Bearer ${token}` },
-        params: filtros, 
+        params: filtros,
         responseType: 'blob',
       });
 
@@ -71,16 +71,16 @@ export default function HistorialMantenimientos() {
 
   const formatearTipo = (tipo) => {
     const tipos = {
-        'CAMBIO_ACEITE': 'Cambio de Aceite',
-        'FILTROS': 'Cambio de Filtros',
-        'FRENOS': 'Revisión de Frenos',
-        'LLANTAS': 'Revisión de Llantas',
-        'SUSPENSION': 'Revisión de Suspensión',
-        'ELECTRICO': 'Sistema Eléctrico',
-        'REFRIGERACION': 'Sistema de Refrigeración',
-        'OTRO': 'Otro'
-      };
-      return tipos[tipo] || tipo;
+      'CAMBIO_ACEITE': 'Cambio de Aceite',
+      'FILTROS': 'Cambio de Filtros',
+      'FRENOS': 'Revisión de Frenos',
+      'LLANTAS': 'Revisión de Llantas',
+      'SUSPENSION': 'Revisión de Suspensión',
+      'ELECTRICO': 'Sistema Eléctrico',
+      'REFRIGERACION': 'Sistema de Refrigeración',
+      'OTRO': 'Otro'
+    };
+    return tipos[tipo] || tipo;
   };
 
   const formatearFechaSinAjuste = (fechaString) => {
@@ -95,7 +95,7 @@ export default function HistorialMantenimientos() {
 
     if (fecha_inicio && fechaM < fecha_inicio) return false;
     if (fecha_fin && fechaM > fecha_fin) return false;
-    
+
     return true;
   });
 
@@ -110,28 +110,28 @@ export default function HistorialMantenimientos() {
 
           <div className="vlc-hmn-actions">
             <div className="vlc-hmn-date-group">
-                <div className="vlc-date-input-wrapper">
-                    <span className="vlc-date-label">Desde:</span>
-                    <input 
-                        type="date" 
-                        className="vlc-hmn-date-input"
-                        value={filtros.fecha_inicio}
-                        onChange={(e) => setFiltros({...filtros, fecha_inicio: e.target.value})}
-                    />
-                </div>
-                <div className="vlc-date-input-wrapper">
-                    <span className="vlc-date-label">Hasta:</span>
-                    <input 
-                        type="date" 
-                        className="vlc-hmn-date-input"
-                        value={filtros.fecha_fin}
-                        onChange={(e) => setFiltros({...filtros, fecha_fin: e.target.value})}
-                    />
-                </div>
+              <div className="vlc-date-input-wrapper">
+                <span className="vlc-date-label">Desde:</span>
+                <input
+                  type="date"
+                  className="vlc-hmn-date-input"
+                  value={filtros.fecha_inicio}
+                  onChange={(e) => setFiltros({ ...filtros, fecha_inicio: e.target.value })}
+                />
+              </div>
+              <div className="vlc-date-input-wrapper">
+                <span className="vlc-date-label">Hasta:</span>
+                <input
+                  type="date"
+                  className="vlc-hmn-date-input"
+                  value={filtros.fecha_fin}
+                  onChange={(e) => setFiltros({ ...filtros, fecha_fin: e.target.value })}
+                />
+              </div>
             </div>
 
             <button className="vlc-hmn-btn-pdf" onClick={handleExportarPDF}>
-               <FaFilePdf /> Generar PDF
+              <FaFilePdf /> Generar PDF
             </button>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function HistorialMantenimientos() {
               <table className="vlc-hmn-table">
                 <thead>
                   <tr>
-                    <th>Unidad</th> 
+                    <th>Unidad</th>
                     <th>Tipo de Servicio</th>
                     <th>KM Actual</th>
                     <th>Próximo KM</th>
@@ -161,7 +161,7 @@ export default function HistorialMantenimientos() {
                       <td className="vlc-hmn-vehicle">
                         <strong>{mapaVehiculos[m.vehiculo] || 'Vehículo no encontrado'}</strong>
                       </td>
-                      <td className="vlc-hmn-type">{formatearTipo(m.tipo)}</td>
+                      <td className="vlc-hmn-type">{m.tipo_nombre || m.tipo}</td>
                       <td>{m.kilometraje_actual.toLocaleString()} km</td>
                       <td className="vlc-hmn-next-km">{m.kilometraje_proximo.toLocaleString()} km</td>
                       <td>{formatearFechaSinAjuste(m.fecha_mantenimiento)}</td>

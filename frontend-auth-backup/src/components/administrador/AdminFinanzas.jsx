@@ -5,13 +5,14 @@ import './estilos/AdminFinanzas.css';
 
 export default function AdminFinanzas() {
   const [movimientos, setMovimientos] = useState([]);
+  const [tiposFinanza, setTiposFinanza] = useState([]);
   const [resumen, setResumen] = useState({ ingresos: 0, gastos: 0, balance: 0 });
   const [filtros, setFiltros] = useState({ fecha_inicio: '', fecha_fin: '', tipo: '' });
 
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [editingId, setEditingId] = useState(null); 
+  const [editingId, setEditingId] = useState(null);
   const [nuevoMovimiento, setNuevoMovimiento] = useState({
-    tipo: 'INGRESO',
+    tipo: '',
     monto: '',
     descripcion: '',
     fecha: ''
@@ -26,10 +27,17 @@ export default function AdminFinanzas() {
         headers: { Authorization: `Bearer ${token}` },
         params: filtros
       };
-      const resMov = await axios.get(`${API_URL}movimientos/`, config);
+
+      const [resMov, resBalance, resTipos] = await Promise.all([
+        axios.get(`${API_URL}movimientos/`, config),
+        axios.get(`${API_URL}balance/`, config),
+        axios.get(`${API_URL}tipos/`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
       setMovimientos(resMov.data.results || resMov.data);
-      const resBalance = await axios.get(`${API_URL}balance/`, config);
       setResumen(resBalance.data);
+      setTiposFinanza(resTipos.data.results || resTipos.data);
+
     } catch (error) {
       console.error(error);
     }
@@ -47,6 +55,7 @@ export default function AdminFinanzas() {
   const handleEdit = (mov) => {
     setEditingId(mov.id);
     setNuevoMovimiento({
+      // mov.tipo is now the ID of the foreign key, which matches the value needed for the select
       tipo: mov.tipo,
       monto: mov.monto,
       descripcion: mov.descripcion,
@@ -71,11 +80,16 @@ export default function AdminFinanzas() {
   const cerrarModal = () => {
     setMostrarModal(false);
     setEditingId(null);
-    setNuevoMovimiento({ tipo: 'INGRESO', monto: '', descripcion: '', fecha: '' });
+    setNuevoMovimiento({ tipo: '', monto: '', descripcion: '', fecha: '' });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!nuevoMovimiento.tipo) {
+      alert("Seleccione un tipo");
+      return;
+    }
+
     try {
       if (editingId) {
         // Modo Edición
@@ -97,6 +111,7 @@ export default function AdminFinanzas() {
       cerrarModal();
       cargarDatos();
     } catch (error) {
+      console.error(error);
       alert('Error al guardar el movimiento');
     }
   };
@@ -135,13 +150,17 @@ export default function AdminFinanzas() {
             onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}
           >
             <option value="">Todos los Tipos</option>
-            <option value="INGRESO">Ingresos</option>
-            <option value="GASTO">Gastos</option>
+            {tiposFinanza.map(t => (
+              <option key={t.id} value={t.id}>{t.nombre}</option>
+            ))}
           </select>
         </div>
 
         <div className="vlc-fin-actions">
-          <button className="vlc-fin-btn vlc-btn-add" onClick={() => setMostrarModal(true)}>
+          <button className="vlc-fin-btn vlc-btn-add" onClick={() => {
+            setNuevoMovimiento({ tipo: tiposFinanza.length > 0 ? tiposFinanza[0].id : '', monto: '', descripcion: '', fecha: '' });
+            setMostrarModal(true);
+          }}>
             <FaPlus /> Registrar
           </button>
           <button className="vlc-fin-btn vlc-btn-pdf" onClick={handleExportarPDF}>
@@ -170,8 +189,8 @@ export default function AdminFinanzas() {
                 <tr key={mov.id}>
                   <td>{mov.fecha}</td>
                   <td>
-                    <span className={`vlc-fin-tag ${mov.tipo}`}>
-                      {mov.tipo}
+                    <span className={`vlc-fin-tag ${mov.tipo_nombre === 'Ingreso' ? 'INGRESO' : mov.tipo_nombre === 'Gasto' ? 'GASTO' : 'OTRO'}`}>
+                      {mov.tipo_nombre}
                     </span>
                   </td>
                   <td>{mov.descripcion || '-'}</td>
@@ -201,8 +220,10 @@ export default function AdminFinanzas() {
               <div className="vlc-fin-field">
                 <label>Tipo de Movimiento:</label>
                 <select name="tipo" value={nuevoMovimiento.tipo} onChange={handleChange} required>
-                  <option value="INGRESO">Ingreso</option>
-                  <option value="GASTO">Gasto</option>
+                  <option value="">Seleccione...</option>
+                  {tiposFinanza.map(t => (
+                    <option key={t.id} value={t.id}>{t.nombre}</option>
+                  ))}
                 </select>
               </div>
 

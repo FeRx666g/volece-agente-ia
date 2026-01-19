@@ -95,6 +95,7 @@ class ListarUsuariosView(ListAPIView):
     queryset = Usuario.objects.filter(is_active=True).order_by('-id')
     serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
     
 
 class EliminarUsuarioView(generics.DestroyAPIView):

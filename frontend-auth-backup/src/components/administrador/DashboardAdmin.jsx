@@ -22,6 +22,7 @@ export default function DashboardAdmin() {
     { path: '/dashboard-admin/vehiculos', label: 'Vehículos', icon: <FaTruck /> },
     { path: '/dashboard-admin/finanzas', label: 'Finanzas', icon: <FaMoneyBillWave /> },
     { path: '/dashboard-admin/reportes', label: 'Reportes', icon: <FaChartBar /> },
+    { path: '/dashboard-admin/estadisticas', label: 'Viajes', icon: <FaChartBar /> },
   ];
 
   return (

@@ -12,7 +12,7 @@ export default function ListadoVehiculos() {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscarPlaca, setBuscarPlaca] = useState('');
   const [pagina, setPagina] = useState(1);
-  const [totalPaginas, setTotalPaginas] = useState(1);
+  const ITEMS_PER_PAGE = 5;
   const [loading, setLoading] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -27,21 +27,40 @@ export default function ListadoVehiculos() {
     cargarVehiculos();
   }, [pagina]);
 
+  const vehiculosFiltrados = (vehiculos ?? []).filter(v => {
+    // Use estado (ID) for filtering if filter is ID, or map it.
+    return (filtroTipo === '' || v.tipo_vehiculo == filtroTipo) &&
+      (filtroEstado === '' || v.estado == filtroEstado) &&
+      (buscarPlaca === '' || v.placa.toLowerCase().includes(buscarPlaca.toLowerCase()));
+  });
+
+  const totalFilteredPages = Math.ceil(vehiculosFiltrados.length / ITEMS_PER_PAGE);
+  const vehiculosPaginados = vehiculosFiltrados.slice(
+    (pagina - 1) * ITEMS_PER_PAGE,
+    pagina * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [filtroTipo, filtroEstado, buscarPlaca]);
+
   const cargarVehiculos = () => {
     setLoading(true);
-    axios.get(`http://localhost:8000/api/vehiculos/?page=${pagina}`, {
+    axios.get(`http://localhost:8000/api/vehiculos/`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('access')}` }
     })
       .then(res => {
-        if (res.data && Array.isArray(res.data.results)) {
-          setVehiculos(res.data.results);
-          setTotalPaginas(Math.ceil(res.data.count / 10));
-        } else {
-          setVehiculos([]);
-        }
+        const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
+        setVehiculos(data);
       })
       .catch(() => setVehiculos([]))
       .finally(() => setLoading(false));
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalFilteredPages) {
+      setPagina(newPage);
+    }
   };
 
   const cargarAuxiliares = () => {
@@ -154,12 +173,7 @@ export default function ListadoVehiculos() {
 
 
 
-  const vehiculosFiltrados = (vehiculos ?? []).filter(v => {
-    // Use estado (ID) for filtering if filter is ID, or map it.
-    return (filtroTipo === '' || v.tipo_vehiculo == filtroTipo) &&
-      (filtroEstado === '' || v.estado == filtroEstado) &&
-      (buscarPlaca === '' || v.placa.toLowerCase().includes(buscarPlaca.toLowerCase()));
-  });
+
 
   return (
     <div className="vlc-vls-container">
@@ -211,10 +225,10 @@ export default function ListadoVehiculos() {
               </tr>
             </thead>
             <tbody>
-              {vehiculosFiltrados.length === 0 ? (
+              {vehiculosPaginados.length === 0 ? (
                 <tr><td colSpan="8" className="vlc-vls-empty">No se encontraron unidades</td></tr>
               ) : (
-                vehiculosFiltrados.map(vehiculo => (
+                vehiculosPaginados.map(vehiculo => (
                   <tr key={vehiculo.id}>
                     <td className="vlc-vls-placa"><strong>{vehiculo.placa}</strong></td>
                     <td>{vehiculo.tipo_nombre || vehiculo.tipo}</td>
@@ -275,9 +289,53 @@ export default function ListadoVehiculos() {
       </div >
 
       <div className="vlc-vls-pagination">
-        <button disabled={pagina === 1} onClick={() => setPagina(pagina - 1)} className="vlc-vls-page-btn">Anterior</button>
-        <span className="vlc-vls-page-info">Página <strong>{pagina}</strong> de {totalPaginas}</span>
-        <button disabled={pagina === totalPaginas} onClick={() => setPagina(pagina + 1)} className="vlc-vls-page-btn">Siguiente</button>
+        <button
+          onClick={() => handlePageChange(Math.max(pagina - 1, 1))}
+          disabled={pagina === 1}
+        >
+          Anterior
+        </button>
+
+        {(() => {
+          const totalPages = totalFilteredPages;
+          const MAX_VISIBLE = 10;
+          const pages = [];
+
+          if (totalPages <= MAX_VISIBLE) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+          } else {
+            pages.push(1);
+            let start = Math.max(2, pagina - 2);
+            let end = Math.min(totalPages - 1, pagina + 2);
+
+            if (pagina <= 4) end = 7;
+            if (pagina >= totalPages - 3) start = totalPages - 6;
+
+            if (start > 2) pages.push('...');
+            for (let i = start; i <= end; i++) pages.push(i);
+            if (end < totalPages - 1) pages.push('...');
+            pages.push(totalPages);
+          }
+
+          return pages.map((p, index) => (
+            <button
+              key={index}
+              onClick={() => typeof p === 'number' ? handlePageChange(p) : null}
+              disabled={p === '...'}
+              className={p === pagina ? 'active' : ''}
+              style={p === '...' ? { border: 'none', background: 'transparent', cursor: 'default' } : {}}
+            >
+              {p}
+            </button>
+          ));
+        })()}
+
+        <button
+          onClick={() => handlePageChange(Math.min(pagina + 1, totalFilteredPages))}
+          disabled={pagina === totalFilteredPages}
+        >
+          Siguiente
+        </button>
       </div>
 
       {

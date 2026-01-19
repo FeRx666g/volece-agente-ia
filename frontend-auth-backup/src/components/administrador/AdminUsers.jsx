@@ -24,7 +24,7 @@ export default function AdminUsers() {
       const res = await axios.get('http://127.0.0.1:8000/api/usuarios/listar/', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUsuarios(res.data.results);
+      setUsuarios(Array.isArray(res.data) ? res.data : res.data.results);
     } catch (error) {
       console.error('Error:', error.message);
     }
@@ -203,7 +203,54 @@ export default function AdminUsers() {
             Anterior
           </button>
 
-          <span>Página {currentPage} de {totalPages}</span>
+          {(() => {
+            const totalPages = Math.ceil(usuariosFiltrados.length / ITEMS_PER_PAGE);
+            const MAX_VISIBLE = 10;
+            const pages = [];
+
+            if (totalPages <= MAX_VISIBLE) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              // Always include first page
+              pages.push(1);
+
+              let start = Math.max(2, currentPage - 2);
+              let end = Math.min(totalPages - 1, currentPage + 2);
+
+              if (currentPage <= 4) {
+                end = 7;
+              }
+              if (currentPage >= totalPages - 3) {
+                start = totalPages - 6;
+              }
+
+              if (start > 2) {
+                pages.push('...');
+              }
+
+              for (let i = start; i <= end; i++) {
+                pages.push(i);
+              }
+
+              if (end < totalPages - 1) {
+                pages.push('...');
+              }
+
+              pages.push(totalPages);
+            }
+
+            return pages.map((page, index) => (
+              <button
+                key={index}
+                onClick={() => typeof page === 'number' ? handlePageChange(page) : null}
+                className={page === currentPage ? 'active' : ''}
+                disabled={page === '...'}
+                style={page === '...' ? { border: 'none', background: 'transparent', cursor: 'default' } : {}}
+              >
+                {page}
+              </button>
+            ));
+          })()}
 
           <button
             onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}

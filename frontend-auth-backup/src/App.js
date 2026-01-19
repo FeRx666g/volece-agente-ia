@@ -30,6 +30,7 @@ import RegistroVehiculo from './components/administrador/RegistroVehiculo';
 import ListadoVehiculos from './components/administrador/ListadoVehiculos';
 import AdminTiposVehiculos from './components/administrador/AdminTiposVehiculos';
 import AdminFinanzas from './components/administrador/AdminFinanzas';
+import AdminEstadisticas from './components/administrador/AdminEstadisticas';
 
 // componentes página de inicio
 import TiposDeCargas from './pages/TiposDeCargas';
@@ -72,6 +73,7 @@ function App() {
             <Route path="solicitudes" element={<AdminSolicitudes />} />
             <Route path="vehiculos" element={<AdminVehiculos />} />
             <Route path="reportes" element={<AdminReportes />} />
+            <Route path="estadisticas" element={<AdminEstadisticas />} />
             <Route path="vehiculos/registrar-vehiculo" element={<RegistroVehiculo />} />
             <Route path="vehiculos/listar-vehiculos" element={<ListadoVehiculos />} />
             <Route path="vehiculos/gestionar-tipos" element={<AdminTiposVehiculos />} />

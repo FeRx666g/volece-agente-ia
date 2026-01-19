@@ -33,6 +33,7 @@ class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminRol]
+    pagination_class = None
 
 class VehiculoTransportistaView(APIView):
     permission_classes = [permissions.IsAuthenticated]

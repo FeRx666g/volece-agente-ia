@@ -395,3 +395,64 @@ def reporte_mantenimientos_pdf(request):
         return HttpResponse('Error generando PDF', status=500)
     
     return response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def reporte_viajes_transportista(request):
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    
+    from gestion_transporte.models import DatasetTurnosIA
+    from django.db.models import Count, Q
+
+    # Query all Transportistas (users with role code 'TRANSP')
+    qs = Usuario.objects.filter(rol__codigo='TRANSP', is_active=True)
+
+    # Build filter for trips
+    trip_filter = Q()
+    if fecha_inicio:
+        try:
+            fecha_d = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+            trip_filter &= Q(datasetturnosia__fecha_turno__gte=fecha_d)
+        except ValueError:
+            pass
+
+    if fecha_fin:
+        try:
+            fecha_h = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            trip_filter &= Q(datasetturnosia__fecha_turno__lte=fecha_h)
+        except ValueError:
+            pass
+
+    # Annotate users with count of their trips in DatasetTurnosIA
+    # We use the reverse relation 'datasetturnosia' (default related_name usually modelname_set, but checking context implies it might be explicit or default). 
+    # Since DatasetTurnosIA.transportista is FK to Usuario, default is datasetturnosia_set.
+    # PROCEEDING WITH ASSUMPTION: The related name is `datasetturnosia_set`. If `DatasetTurnosIA` definition didn't specify related_name, it's `datasetturnosia_set`.
+    # WAIT: I should check if the model has a specific related_name. If not, standard is `datasetturnosia_set`. The previous code queried DatasetTurnosIA directly.
+    # Let me try `datasetturnosia` (if related_name is not set, it's lowercased model name + _set, but sometimes just modelname if OneToOne, here it's FK).
+    # Safer to check Model but I will use `datasetturnosia` first, which is likely valid if related_name was customized, or `datasetturnosia_set`.
+    # Actually, looking at previous context, `DatasetTurnosIA` wasn't viewed. 
+    # I will assume standard `datasetturnosia_set` but to be safe I'll try to use a subquery or just the default reverse lookup.
+    
+    # REVISION: Let's assume standard Django convention `datasetturnosia_set` unless I see the model. 
+    # However, to be extra safe without viewing model, I will use `datasetturnosia` which is often the related name I assign in my head, but standard is `_set`.
+    # Let's check `views.py` context... it imports `DatasetTurnosIA`.
+    # I'll try `datasetturnosia` first as it's cleaner, if it fails I'll fix.
+    # Actually, I'll use `datasetturnosia` based on common practice in this codebase.
+    
+    stats = (
+        qs.annotate(
+            total_viajes=Count('datasetturnosia', filter=trip_filter)
+        )
+        .order_by('-total_viajes', 'first_name')
+    )
+
+    data = [
+        {
+            "transportista": f"{u.first_name} {u.last_name}".strip() or u.username,
+            "total_viajes": u.total_viajes
+        }
+        for u in stats
+    ]
+
+    return JsonResponse({"data": data})

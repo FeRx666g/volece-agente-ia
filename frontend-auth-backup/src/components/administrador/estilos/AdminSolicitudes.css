@@ -287,6 +287,7 @@
   background: var(--vlc-green-mid);
   color: white;
   border-color: var(--vlc-green-mid);
+  font-weight: bold;
 }
 
 .vlc-sol-pagination span {

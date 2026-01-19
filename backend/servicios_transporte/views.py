@@ -55,6 +55,7 @@ class ListaSolicitudesAdminView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['cliente']
     search_fields = ['cliente__username']
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()

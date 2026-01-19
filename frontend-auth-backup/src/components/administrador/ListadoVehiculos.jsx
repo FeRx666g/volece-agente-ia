@@ -84,10 +84,7 @@ export default function ListadoVehiculos() {
       anio: vehiculo.anio,
       color: vehiculo.color,
       tonelaje: vehiculo.tonelaje,
-      // Use combustible_nuevo (ID)
-      combustible_nuevo: vehiculo.combustible_nuevo || '',
-      // Fallback to text match if needed or just empty
-
+      combustible: vehiculo.combustible || '',
       numero_motor: vehiculo.numero_motor || '',
       numero_chasis: vehiculo.numero_chasis || '',
       fecha_adquisicion: vehiculo.fecha_adquisicion || '',
@@ -128,12 +125,7 @@ export default function ListadoVehiculos() {
     formData.append('anio', editData.anio);
     formData.append('color', editData.color);
     formData.append('tonelaje', editData.tonelaje);
-
-    // Send ID
-    formData.append('combustible_nuevo', editData.combustible_nuevo);
-    // Compatibility: Send text name too
-    const combName = tiposCombustibles.find(c => c.id == editData.combustible_nuevo)?.nombre || 'DIESEL';
-    formData.append('combustible', combName);
+    formData.append('combustible', editData.combustible);
 
     formData.append('numero_motor', editData.numero_motor);
     formData.append('numero_chasis', editData.numero_chasis);
@@ -346,7 +338,7 @@ export default function ListadoVehiculos() {
                     </div>
                     <div className="vlc-group">
                       <label>Combustible</label>
-                      <select name="combustible_nuevo" value={editData.combustible_nuevo} onChange={handleEditChange}>
+                      <select name="combustible" value={editData.combustible} onChange={handleEditChange}>
                         {tiposCombustibles.map(c => (
                           <option key={c.id} value={c.id}>{c.nombre}</option>
                         ))}

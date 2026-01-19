@@ -101,7 +101,21 @@ export default function AdminUsers() {
       cargarUsuarios();
       alert('Operación exitosa');
     } catch (error) {
-      alert('Error en la operación');
+      if (error.response && error.response.data) {
+        let mensaje = '';
+        const data = error.response.data;
+        if (typeof data === 'object') {
+          Object.keys(data).forEach(key => {
+            const errorMsg = Array.isArray(data[key]) ? data[key].join(' ') : data[key];
+            mensaje += `${key}: ${errorMsg}\n`;
+          });
+        } else {
+          mensaje = String(data);
+        }
+        alert(mensaje);
+      } else {
+        alert('Error en la operación');
+      }
     }
   };
 

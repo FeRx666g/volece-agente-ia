@@ -76,9 +76,11 @@ class SolicitudServicioSerializer(serializers.ModelSerializer):
             return None
 
 class VehiculoSimpleSerializer(serializers.ModelSerializer):
+    tipo_nombre = serializers.ReadOnlyField(source='tipo_vehiculo.nombre')
+    
     class Meta:
         model = Vehiculo
-        fields = ['id', 'placa', 'marca', 'modelo', 'tipo', 'foto']
+        fields = ['id', 'placa', 'marca', 'modelo', 'tipo_nombre', 'foto']
 
 class DatasetTurnosIASerializer(serializers.ModelSerializer):
     solicitud_data = SolicitudServicioSerializer(source='solicitud', read_only=True)

@@ -648,7 +648,61 @@ const AdminSolicitudes = () => {
             Anterior
           </button>
 
-          <span>Página {currentPage} de {Math.ceil(solicitudes.length / ITEMS_PER_PAGE)}</span>
+          {(() => {
+            const totalPages = Math.ceil(solicitudes.length / ITEMS_PER_PAGE);
+            const MAX_VISIBLE = 10;
+            const pages = [];
+
+            if (totalPages <= MAX_VISIBLE) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              // Always include first page
+              pages.push(1);
+
+              // Calculate start and end of the middle window
+              // We want to show roughly 5 pages around current
+              let start = Math.max(2, currentPage - 2);
+              let end = Math.min(totalPages - 1, currentPage + 2);
+
+              // Adjust if current is near the beginning
+              if (currentPage <= 4) {
+                end = 7;
+              }
+              // Adjust if current is near the end
+              if (currentPage >= totalPages - 3) {
+                start = totalPages - 6;
+              }
+
+              // Ellipsis before window
+              if (start > 2) {
+                pages.push('...');
+              }
+
+              for (let i = start; i <= end; i++) {
+                pages.push(i);
+              }
+
+              // Ellipsis after window
+              if (end < totalPages - 1) {
+                pages.push('...');
+              }
+
+              // Always include last page
+              pages.push(totalPages);
+            }
+
+            return pages.map((page, index) => (
+              <button
+                key={index}
+                onClick={() => typeof page === 'number' ? setCurrentPage(page) : null}
+                className={page === currentPage ? 'active' : ''}
+                disabled={page === '...'}
+                style={page === '...' ? { border: 'none', background: 'transparent', cursor: 'default' } : {}}
+              >
+                {page}
+              </button>
+            ));
+          })()}
 
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(solicitudes.length / ITEMS_PER_PAGE)))}

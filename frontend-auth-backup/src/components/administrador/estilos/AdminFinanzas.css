@@ -36,10 +36,21 @@
   border: 1px solid var(--vlc-border);
 }
 
-.vlc-fin-card-ingreso { border-left: 6px solid var(--vlc-green-accent); }
-.vlc-fin-card-gasto { border-left: 6px solid var(--vlc-red); }
-.vlc-fin-card-balance { border-left: 6px solid var(--vlc-blue); }
-.vlc-fin-card-balance.vlc-fin-negative { border-left-color: var(--vlc-red); }
+.vlc-fin-card-ingreso {
+  border-left: 6px solid var(--vlc-green-accent);
+}
+
+.vlc-fin-card-gasto {
+  border-left: 6px solid var(--vlc-red);
+}
+
+.vlc-fin-card-balance {
+  border-left: 6px solid var(--vlc-blue);
+}
+
+.vlc-fin-card-balance.vlc-fin-negative {
+  border-left-color: var(--vlc-red);
+}
 
 .vlc-fin-summary-card h4 {
   margin: 0;
@@ -70,7 +81,8 @@
   gap: 10px;
 }
 
-.vlc-fin-input, .vlc-fin-select {
+.vlc-fin-input,
+.vlc-fin-select {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--vlc-border);
@@ -95,16 +107,26 @@
   transition: opacity 0.2s;
 }
 
-.vlc-btn-add { background: var(--vlc-green-mid); color: white; }
-.vlc-btn-pdf { background: #cc3333; color: white; }
-.vlc-fin-btn:hover { opacity: 0.9; }
+.vlc-btn-add {
+  background: var(--vlc-green-mid);
+  color: white;
+}
+
+.vlc-btn-pdf {
+  background: #cc3333;
+  color: white;
+}
+
+.vlc-fin-btn:hover {
+  opacity: 0.9;
+}
 
 /* TABLA FINANCIERA */
 .vlc-fin-table-wrapper {
   background: white;
   border-radius: 12px;
   border: 1px solid var(--vlc-border);
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
@@ -132,17 +154,33 @@
   font-weight: 800;
   font-size: 0.75rem;
 }
-.vlc-fin-tag.INGRESO { color: #16a34a; }
-.vlc-fin-tag.GASTO { color: #dc2626; }
 
-.vlc-fin-amount { font-weight: 800; }
-.vlc-fin-empty { text-align: center; padding: 2rem; color: #94a3b8; }
+.vlc-fin-tag.INGRESO {
+  color: #16a34a;
+}
+
+.vlc-fin-tag.GASTO {
+  color: #dc2626;
+}
+
+.vlc-fin-amount {
+  font-weight: 800;
+}
+
+.vlc-fin-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+}
 
 /* MODAL REGISTRO */
 .vlc-fin-modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -155,17 +193,32 @@
   max-width: 450px;
   padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   animation: vlcSlideDown 0.4s ease;
 }
 
-.vlc-fin-modal-card h3 { margin-bottom: 1.5rem; color: var(--vlc-green-dark); text-align: center; }
+.vlc-fin-modal-card h3 {
+  margin-bottom: 1.5rem;
+  color: var(--vlc-green-dark);
+  text-align: center;
+}
 
-.vlc-fin-form { display: flex; flex-direction: column; gap: 1.2rem; }
+.vlc-fin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
 
-.vlc-fin-field label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.85rem; color: var(--vlc-text-main); }
+.vlc-fin-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--vlc-text-main);
+}
 
-.vlc-fin-form input, .vlc-fin-form select {
+.vlc-fin-form input,
+.vlc-fin-form select {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--vlc-border);
@@ -173,10 +226,52 @@
   outline: none;
 }
 
-.vlc-fin-modal-btns { display: flex; gap: 12px; margin-top: 1rem; }
+.vlc-fin-modal-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 1rem;
+}
 
-.vlc-fin-btn-save { flex: 1; padding: 12px; background: var(--vlc-green-mid); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.vlc-fin-btn-cancel { flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.vlc-fin-btn-save {
+  flex: 1;
+  padding: 12px;
+  background: var(--vlc-green-mid);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-@keyframes vlcFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes vlcSlideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.vlc-fin-btn-cancel {
+  flex: 1;
+  padding: 12px;
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes vlcFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vlcSlideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

@@ -84,7 +84,7 @@
 .vlc-vls-table-wrapper {
   background: var(--vlc-vls-white);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--vlc-vls-border);
 }

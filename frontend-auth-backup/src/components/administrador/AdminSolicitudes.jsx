@@ -110,9 +110,9 @@ const AdminSolicitudes = () => {
       setSolicitudes(solicitudesProcesadas);
       setError(null);
 
-      if (!skipAutoVal) {
-        autoGenerarFaltantes(solicitudesProcesadas, headers);
-      }
+      // if (!skipAutoVal) {
+      //   autoGenerarFaltantes(solicitudesProcesadas, headers);
+      // }
     } catch (err) {
       setError('Error al cargar solicitudes');
       setSolicitudes([]);
